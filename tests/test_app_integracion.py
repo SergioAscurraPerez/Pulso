@@ -135,7 +135,8 @@ def test_propuesta_sin_llm_usa_la_plantilla(sin_llm):
     app_modulo._propuesta.cache_clear()
     respuesta = cliente.get("/antes-despues/propuesta", params={"fuente": "mock"})
     assert respuesta.status_code == 200
-    assert "Generada con la plantilla" in respuesta.text
+    assert "Resumen generado con la plantilla" in respuesta.text
+    assert "Cifras, métricas y beneficio calculados por PULSO" in respuesta.text
     assert "<h3>Cambios propuestos</h3>" in respuesta.text
     app_modulo._propuesta.cache_clear()
 
