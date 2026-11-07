@@ -63,3 +63,24 @@ def test_fechas_propuestas_cambian_la_carga():
     delta = carga_evaluacion(parcial_io)
     assert despues[8] == round(antes[8] - delta, 2)
     assert despues[9] == round(antes[9] + delta, 2)
+
+
+def test_periodo_examenes_agrupa_semanas_consecutivas():
+    from src.engine.load_index import periodo_examenes
+
+    assert periodo_examenes(8) == {8}
+    assert periodo_examenes(16) == periodo_examenes(17) == {16, 17}
+    assert periodo_examenes(12) == set()
+
+
+def test_semana_permitida():
+    from src.engine.load_index import semana_permitida
+
+    final = _ev("EF", "examen_final", 30, semana=16)
+    parcial = _ev("EP", "examen_parcial", 30, semana=8)
+    pc = _ev("PC", "practica_calificada", 10, semana=15)
+    assert semana_permitida(final, 16, 17) and not semana_permitida(final, 16, 15)
+    assert semana_permitida(parcial, 8, 8) and not semana_permitida(parcial, 8, 9)
+    assert semana_permitida(pc, 15, 14) and not semana_permitida(pc, 15, 16)
+    expo = _ev("EX", "exposicion", 20, semana=8)
+    assert semana_permitida(expo, 8, 8) and semana_permitida(expo, 8, 9) and not semana_permitida(expo, 8, 16)

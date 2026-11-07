@@ -57,6 +57,13 @@ class Evaluacion(BaseModel):
         return self
 
 
+class GrupoMatricula(BaseModel):
+    """Estudiantes que llevan exactamente la misma combinación de cursos."""
+
+    cursos: list[str] = Field(min_length=1)
+    cantidad: int = Field(gt=0)
+
+
 class Cohorte(BaseModel):
     """Conjunto de evaluaciones de los cursos que lleva una misma cohorte en un ciclo."""
 
@@ -64,14 +71,26 @@ class Cohorte(BaseModel):
     ciclo: str = Field(description="Ciclo académico, p. ej. '2026-II'.")
     fecha_inicio: date = Field(description="Lunes de la semana 1 del ciclo.")
     evaluaciones: list[Evaluacion]
+    grupos: list[GrupoMatricula] = Field(
+        default_factory=list,
+        description="Matrícula por combinación de cursos. Vacío = todos llevan todos los cursos.",
+    )
 
     @model_validator(mode="after")
-    def _ids_unicos(self) -> Cohorte:
+    def _validar(self) -> Cohorte:
         ids = [e.id for e in self.evaluaciones]
         repetidos = sorted({i for i in ids if ids.count(i) > 1})
         if repetidos:
             raise ValueError(f"IDs de evaluación repetidos: {repetidos}")
+        cursos = {e.curso for e in self.evaluaciones}
+        desconocidos = sorted({c for g in self.grupos for c in g.cursos} - cursos)
+        if desconocidos:
+            raise ValueError(f"Cursos de 'grupos' sin evaluaciones: {desconocidos}")
         return self
+
+    @property
+    def total_estudiantes(self) -> int | None:
+        return sum(g.cantidad for g in self.grupos) or None
 
     @property
     def cursos(self) -> list[str]:
