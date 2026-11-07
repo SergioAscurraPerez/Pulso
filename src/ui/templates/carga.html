@@ -1,36 +1,20 @@
 {% extends "base.html" %}
+{% from "_heatmap.html" import heatmap, leyenda %}
 {% block titulo %}Carga semanal{% endblock %}
 {% block contenido %}
 <section class="cabecera">
   <div>
     <h1>Carga semanal</h1>
     <p class="detalle">{{ cohorte.nombre }} · carga = Σ peso × factor del tipo de evaluación
-      {% if semana_pico %} · pico en la semana {{ semana_pico }} ({{ '%g' % pico }}){% endif %}</p>
+      {% if calendario.semana_pico %} · pico en la semana {{ calendario.semana_pico }} ({{ '%g' % calendario.pico }}){% endif %}</p>
   </div>
-  <ul class="leyenda">
-    <li><span class="muestra muestra-baja"></span>Carga baja</li>
-    <li><span class="muestra muestra-alta"></span>Carga alta</li>
-    <li><span class="muestra muestra-critica"></span>Semana crítica</li>
-  </ul>
+  {{ leyenda() }}
 </section>
 
 {# Al hacer clic en una semana, HTMX trae la misma página y reemplaza solo este bloque.
    Sin JavaScript, el enlace recarga la página completa con el mismo resultado. #}
 <div id="vista-carga" hx-boost="true" hx-select="#vista-carga" hx-target="#vista-carga" hx-swap="outerHTML show:none">
-  <ol class="heatmap">
-    {% for s in semanas %}
-      <li>
-        <a class="celda{% if s.critica %} critica{% endif %}"
-           href="/carga?fuente={{ fuente }}&semana={{ s.numero }}"
-           style="--intensidad: {{ '%.2f' % s.intensidad }}"
-           aria-label="Semana {{ s.numero }}: carga {{ '%g' % s.carga }}{% if s.critica %}, semana crítica{% endif %}"
-           {% if seleccionada and seleccionada.numero == s.numero %}aria-current="true"{% endif %}>
-          <span class="celda-semana">S{{ s.numero }}</span>
-          <span class="celda-carga">{{ '%g' % s.carga }}</span>
-        </a>
-      </li>
-    {% endfor %}
-  </ol>
+  {{ heatmap(calendario.semanas, fuente=fuente, seleccionada=seleccionada) }}
 
   <section class="panel">
     {% if seleccionada %}
@@ -51,7 +35,7 @@
                 <td>{{ e.nombre }}</td>
                 <td>{{ e.tipo | etiqueta_tipo }}</td>
                 <td class="num">{{ '%g' % e.peso }} %</td>
-                <td>{% if e.id in ids_en_colision %}<span class="etiqueta-critica">En colisión</span>{% endif %}</td>
+                <td>{% if e.id in calendario.ids_en_colision %}<span class="etiqueta-critica">En colisión</span>{% endif %}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -66,11 +50,11 @@
 </div>
 
 <section class="panel">
-  <h2>Colisiones detectadas ({{ colisiones | length }})</h2>
+  <h2>Colisiones detectadas ({{ calendario.colisiones | length }})</h2>
   <p class="detalle">Ventanas de 72 h con {{ min_evaluaciones }} o más evaluaciones fuertes.</p>
-  {% if colisiones %}
+  {% if calendario.colisiones %}
     <ul class="colisiones">
-      {% for c in colisiones %}
+      {% for c in calendario.colisiones %}
         <li><strong>{{ c.inicio.strftime('%d/%m') }} al {{ c.fin.strftime('%d/%m/%Y') }}</strong>
           · hasta {{ c.max_en_72h }} evaluaciones en 72 h · {{ c.cursos | join(', ') }}</li>
       {% endfor %}
