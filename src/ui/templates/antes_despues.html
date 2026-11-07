@@ -45,7 +45,7 @@
     <div class="kpi">
       <span class="kpi-etiqueta">Evaluaciones movidas</span>
       <span class="kpi-valor">{{ resultado.movimientos | length }}<span class="unidad">de {{ cohorte.evaluaciones | length }}</span></span>
-      <span class="kpi-nota">{% if rechazadas %}las bloqueadas y las {{ rechazadas | length }} rechazadas no se mueven{% else %}las bloqueadas por el docente no se mueven{% endif %}</span>
+      <span class="kpi-nota">{% if rechazadas | length == 1 %}las bloqueadas y la rechazada no se mueven{% elif rechazadas %}las bloqueadas y las {{ rechazadas | length }} rechazadas no se mueven{% else %}las bloqueadas por el docente no se mueven{% endif %}</span>
     </div>
     <div class="kpi">
       <span class="kpi-etiqueta">Optimizador</span>

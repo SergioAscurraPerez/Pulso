@@ -1,5 +1,7 @@
 """La cohorte subida vive en /tmp de una instancia de Vercel: si ya no está, la app avisa con una página."""
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -74,3 +76,24 @@ def test_ninguna_vista_muestra_paginas_en_construccion():
         texto = cliente.get(ruta, params={"fuente": "mock"}).text
         assert "en construcción" not in texto
         assert "PUL-" not in texto
+
+
+def test_descargar_propuesta_sin_optimizacion_posible_no_da_500(tmp_path, monkeypatch):
+    ruta = tmp_path / "cohorte.json"
+    evaluacion = {"curso": "Curso A", "nombre": "Práctica 1", "tipo": "practica_calificada", "semana": 3, "peso": 10}
+    ruta.write_text(
+        json.dumps({"nombre": "Sin fechas", "ciclo": "2026-II", "fecha_inicio": "2026-08-24", "evaluaciones": [evaluacion]}),
+        encoding="utf-8",
+    )
+    monkeypatch.setitem(app_modulo.FUENTES, "cohorte", ("Cohorte", ruta))
+    respuesta = cliente.get("/antes-despues/propuesta.md", params={"fuente": "cohorte"})
+    assert respuesta.status_code == 422
+    assert "No se pudo generar la propuesta" in respuesta.text
+
+
+def test_kpi_de_rechazos_concuerda_en_singular_y_plural():
+    movidas = app_modulo._optimizar(app_modulo.FUENTES["mock"][1], app_modulo.FUENTES["mock"][1].stat().st_mtime).movimientos
+    uno = cliente.get("/antes-despues", params={"fuente": "mock", "rechazadas": movidas[0].id}).text
+    assert "las bloqueadas y la rechazada no se mueven" in uno
+    dos = cliente.get("/antes-despues", params={"fuente": "mock", "rechazadas": f"{movidas[0].id},{movidas[1].id}"}).text
+    assert "las bloqueadas y las 2 rechazadas no se mueven" in dos
