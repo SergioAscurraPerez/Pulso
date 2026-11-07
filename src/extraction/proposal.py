@@ -18,7 +18,7 @@ from datetime import date, timedelta
 
 from src.engine.collisions import MIN_EVALUACIONES, VENTANA_DIAS, detectar_colisiones, es_fuerte
 from src.engine.load_index import carga_semanal_cohorte, semana_de
-from src.extraction.llm import ClienteChat, config_llm, crear_cliente
+from src.extraction.llm import ClienteChat, config_llm, crear_cliente, razonamiento
 from src.formato import nombre_curso
 from src.models import Cohorte
 from src.optimizer.objective import ResultadoOptimizacion
@@ -306,7 +306,7 @@ def generar_propuesta(
             model=modelo,
             temperature=0.3,
             max_tokens=MAX_TOKENS,
-            extra_body={"reasoning": {"effort": "low"}},
+            extra_body=razonamiento(),
             messages=[
                 {"role": "system", "content": PROMPT_SISTEMA},
                 {"role": "user", "content": json.dumps(datos, ensure_ascii=False, indent=2)},

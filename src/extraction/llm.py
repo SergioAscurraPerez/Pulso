@@ -40,6 +40,20 @@ def config_llm() -> ConfigLLM:
     )
 
 
+def razonamiento() -> dict:
+    """Parámetro de razonamiento para `extra_body`, según LLM_REASONING.
+
+    low (por defecto) | medium | high | off | auto. `reasoning` es propio de OpenRouter: con otro
+    proveedor (p. ej. la API de Gemini compatible con OpenAI) usar `auto`, que no envía nada.
+    """
+    valor = (os.getenv("LLM_REASONING") or "low").strip().lower()
+    if valor == "auto":
+        return {}
+    if valor == "off":
+        return {"reasoning": {"enabled": False}}
+    return {"reasoning": {"effort": valor}}
+
+
 def crear_cliente(config: ConfigLLM | None = None, timeout: float = 60):
     """Crea el cliente de OpenRouter. Lanza `RuntimeError` si falta configuración."""
     from openai import OpenAI
