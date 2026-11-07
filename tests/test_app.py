@@ -88,3 +88,35 @@ def test_carga_con_el_mock():
     respuesta = cliente.get("/carga")
     assert respuesta.status_code == 200
     assert "en construcción" not in respuesta.text
+
+
+def test_antes_despues_muestra_reduccion_del_pico_y_movimientos(tmp_path, monkeypatch):
+    _cohorte_con_colision(tmp_path, monkeypatch)
+    respuesta = cliente.get("/antes-despues", params={"fuente": "cohorte"})
+    assert respuesta.status_code == 200
+    # Pico 30 (semana 2) → 10: el optimizador reparte las 3 prácticas en semanas distintas.
+    assert "66.7 %" in respuesta.text
+    assert "1 → 0" in respuesta.text  # colisiones
+    assert "Evaluaciones movidas (2)" in respuesta.text
+    # Solo el calendario "antes" tiene una semana crítica.
+    assert respuesta.text.count('class="celda critica"') == 1
+
+
+def test_antes_despues_sin_fechas_avisa_en_vez_de_fallar(tmp_path, monkeypatch):
+    ruta = tmp_path / "cohorte.json"
+    evaluacion = {"curso": "Curso A", "nombre": "Práctica 1", "tipo": "practica_calificada", "semana": 3, "peso": 10}
+    ruta.write_text(
+        json.dumps({"nombre": "Sin fechas", "ciclo": "2026-II", "fecha_inicio": "2026-08-24", "evaluaciones": [evaluacion]}),
+        encoding="utf-8",
+    )
+    monkeypatch.setitem(FUENTES, "cohorte", ("Cohorte", ruta))
+    respuesta = cliente.get("/antes-despues", params={"fuente": "cohorte"})
+    assert respuesta.status_code == 200
+    assert "No se pudo optimizar esta cohorte" in respuesta.text
+
+
+def test_antes_despues_con_el_mock():
+    respuesta = cliente.get("/antes-despues")
+    assert respuesta.status_code == 200
+    assert "Reducción del pico de carga" in respuesta.text
+    assert "en construcción" not in respuesta.text
