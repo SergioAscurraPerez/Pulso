@@ -161,12 +161,29 @@ def optimizar(
             excesos_dia.append(exceso)
 
     # 3) Objetivo ponderado.
-    m.minimize(
+    principal = (
         pesos.pico * pico
         + pesos.colision * sum(excesos)
         + pesos.mismo_dia * sum(excesos_dia)
         + pesos.movimiento * sum(mp.desplazamiento.values())
     )
+
+    # 4) Desempate lexicográfico: solo decide entre soluciones con el mismo costo principal, que existen
+    #    (p. ej. mover 4 o 6 evaluaciones sumando los mismos días). Sin él, cada máquina elegía una
+    #    distinta (local vs. Vercel). Primero, menos evaluaciones movidas (menos docentes a coordinar);
+    #    luego, un orden fijo por id. Los pesos escalonados garantizan que un nivel nunca compense al anterior.
+    movidas = []
+    for ev in cohorte.evaluaciones:
+        movida = m.new_bool_var(f"movida[{ev.id}]")
+        m.add(mp.desplazamiento[ev.id] >= 1).only_enforce_if(movida)
+        m.add(mp.desplazamiento[ev.id] == 0).only_enforce_if(movida.Not())
+        movidas.append(movida)
+    rango = {ev_id: i + 1 for i, ev_id in enumerate(sorted(mp.dia))}
+    orden = sum(rango[ev_id] * mp.dia[ev_id] for ev_id in mp.dia)
+    max_orden = sum(rango.values()) * ultimo_dia
+    desempate = (max_orden + 1) * sum(movidas) + orden
+    max_desempate = (max_orden + 1) * len(movidas) + max_orden
+    m.minimize((max_desempate + 1) * principal + desempate)
     sol = resolver(mp, minimizar_movimientos=False)
 
     originales = {e.id: e.fecha for e in cohorte.evaluaciones}

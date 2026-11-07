@@ -80,3 +80,19 @@ def test_optimizacion_es_determinista():
     cohorte = cargar_cohorte("data/cohorte.json")
     resultados = {tuple(sorted((m.id, m.fecha_nueva) for m in optimizar(cohorte).movimientos)) for _ in range(5)}
     assert len(resultados) == 1
+
+
+def test_la_misma_solucion_en_cualquier_plataforma():
+    """Movimientos exactos del mock, calculados en Windows: el CI (Linux) debe obtener los mismos.
+
+    Hay soluciones empatadas en el costo principal; el desempate (menos evaluaciones movidas y luego
+    un orden fijo por id) hace que el óptimo sea uno solo.
+    """
+    resultado = optimizar(cargar_cohorte("data/mock/evaluaciones_mock.json"))
+    assert {m.id: m.fecha_nueva.isoformat() for m in resultado.movimientos} == {
+        "sistemas-operativos--examen-parcial": "2026-10-16",
+        "etica-y-deontologia--exposicion-grupal": "2026-10-20",
+        "sistemas-operativos--practica-calificada-2": "2026-11-09",
+        "base-de-datos-ii--examen-final": "2026-12-15",
+        "redes-de-computadoras--examen-final": "2026-12-14",
+    }
