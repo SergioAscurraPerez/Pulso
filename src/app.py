@@ -19,6 +19,7 @@ from pydantic import ValidationError
 from src.engine.collisions import MIN_EVALUACIONES, detectar_colisiones
 from src.engine.load_index import carga_semanal_cohorte, evaluaciones_por_semana, semana_de, semana_pico
 from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, cargar_cohorte
+from src.optimizer.simulator import simular
 
 RAIZ = Path(__file__).resolve().parent.parent
 DIR_UI = Path(__file__).resolve().parent / "ui"
@@ -41,13 +42,14 @@ VISTAS: list[tuple[str, str]] = [
 # Ruta -> tarea del backlog que la implementa. Cada tarea quita su entrada al agregar la vista real.
 VISTAS_PENDIENTES: dict[str, str] = {
     "/antes-despues": "PUL-16",
-    "/simulador": "PUL-18",
 }
 
 app = FastAPI(title="PULSO", description="Radar predictivo de sobrecarga académica")
 app.mount("/static", StaticFiles(directory=DIR_UI / "static"), name="static")
 templates = Jinja2Templates(directory=DIR_UI / "templates")
 templates.env.filters["etiqueta_tipo"] = lambda tipo: tipo.value.replace("_", " ").capitalize()
+DIAS_SEMANA = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
+templates.env.filters["fecha_con_dia"] = lambda f: f"{DIAS_SEMANA[f.weekday()]} {f.strftime('%d/%m/%Y')}"
 
 
 def fuentes_disponibles() -> dict[str, str]:
@@ -160,6 +162,45 @@ def carga(
         colisiones=colisiones,
         ids_en_colision=ids_en_colision,
         min_evaluaciones=MIN_EVALUACIONES,
+    )
+
+
+@app.get("/simulador", response_class=HTMLResponse)
+def simulador(
+    request: Request,
+    fuente: str = FUENTE_POR_DEFECTO,
+    evaluacion: str | None = None,
+    fecha: date | None = None,
+) -> HTMLResponse:
+    """Simulador docente (PUL-18): evaluación + fecha → % de alumnos con colisión y mejor fecha cercana."""
+    cohorte = obtener_cohorte(fuente)
+    fin_ciclo = lunes_de_semana(cohorte, SEMANAS_CICLO) + timedelta(days=6)
+    seleccionada = None
+    if evaluacion:
+        seleccionada = next((e for e in cohorte.evaluaciones if e.id == evaluacion), None)
+        if seleccionada is None:
+            raise HTTPException(status_code=404, detail=f"Evaluación no encontrada: {evaluacion!r}")
+    resultado = error = None
+    if seleccionada and fecha:
+        if cohorte.fecha_inicio <= fecha <= fin_ciclo:
+            resultado = simular(cohorte, seleccionada, fecha)
+        else:
+            error = (
+                f"La fecha debe estar dentro del ciclo: del {cohorte.fecha_inicio.strftime('%d/%m/%Y')} "
+                f"al {fin_ciclo.strftime('%d/%m/%Y')}."
+            )
+    return renderizar(
+        request,
+        "simulador.html",
+        fuente,
+        cohorte=cohorte,
+        evaluaciones=ordenar_por_fecha(cohorte, cohorte.evaluaciones),
+        seleccionada=seleccionada,
+        # Sin fecha elegida, el formulario propone la fecha actual de la evaluación.
+        fecha=fecha or (seleccionada.fecha if seleccionada else None),
+        fin_ciclo=fin_ciclo,
+        resultado=resultado,
+        error=error,
     )
 
 
