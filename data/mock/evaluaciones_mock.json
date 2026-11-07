@@ -100,7 +100,7 @@
       "fecha": "2026-12-08",
       "peso": 35,
       "semana": 16,
-      "bloqueada": true
+      "bloqueada": false
     },
     {
       "curso": "Sistemas Operativos",
@@ -127,7 +127,7 @@
       "fecha": "2026-10-14",
       "peso": 30,
       "semana": 8,
-      "bloqueada": true
+      "bloqueada": false
     },
     {
       "curso": "Sistemas Operativos",
@@ -190,7 +190,7 @@
       "fecha": "2026-12-10",
       "peso": 30,
       "semana": 16,
-      "bloqueada": true
+      "bloqueada": false
     },
     {
       "curso": "Redes de Computadoras",
@@ -235,7 +235,7 @@
       "fecha": "2026-12-11",
       "peso": 35,
       "semana": 16,
-      "bloqueada": true
+      "bloqueada": false
     },
     {
       "curso": "Ética y Deontología",
