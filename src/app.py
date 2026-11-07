@@ -6,10 +6,11 @@ Local: uvicorn src.app:app --reload
 from __future__ import annotations
 
 import hashlib
-from collections import Counter
+import logging
 import re
 import tempfile
 import time
+from collections import Counter
 from dataclasses import dataclass
 from datetime import date, timedelta
 from functools import lru_cache
@@ -29,12 +30,13 @@ from src.extraction.llm import config_llm, crear_cliente
 from src.extraction.llm_parser import ResultadoExtraccion, extraer_evaluaciones
 from src.extraction.pdf_reader import leer_pdf
 from src.extraction.proposal import Propuesta, generar_propuesta
-from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, cargar_cohorte
+from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, TipoEvaluacion, cargar_cohorte
 from src.optimizer.objective import ResultadoOptimizacion, optimizar
 from src.optimizer.simulator import simular
 from src.api import router as api_router
 
 RAIZ = Path(__file__).resolve().parent.parent
+logger = logging.getLogger("pulso")
 DIR_UI = Path(__file__).resolve().parent / "ui"
 
 # En Vercel el filesystem es de solo lectura salvo /tmp: ahí van la caché de extracción y la cohorte subida.
@@ -44,7 +46,7 @@ DIR_TMP = Path(tempfile.gettempdir()) / "pulso"
 # Cada una aparece en el selector solo si su JSON existe.
 FUENTES: dict[str, tuple[str, Path]] = {
     "cohorte": ("Cohorte extraída de los sílabos", RAIZ / "data" / "cohorte.json"),  # PUL-07
-    "subida": ("Sílabos subidos en la app", DIR_TMP / "cohorte-subida.json"),  # /cargar
+    "subida": ("Sílabos subidos en la app", DIR_TMP / "cohorte-subida.json"),  # POST /simulacion
     "mock": ("Datos de ejemplo (mock)", RAIZ / "data" / "mock" / "evaluaciones_mock.json"),
 }
 # Los datos reales reemplazan al mock (PUL-17); el mock queda como respaldo.
@@ -55,7 +57,7 @@ LIMITE_BYTES_SUBIDA = 4 * 1024 * 1024
 TIMEOUT_LLM_S = 20  # por llamada; el cliente reintenta 1 vez → hasta 40 s
 PRESUPUESTO_LLM_S = 15  # pasado este tiempo no se empieza otra extracción: 15 + 40 = 55 s < 60 s
 
-# Navegación: (ruta, título). Las vistas sin implementar muestran una página "en construcción".
+# Navegación: (ruta, título).
 VISTAS: list[tuple[str, str]] = [
     ("/", "Cohorte"),
     ("/simulacion", "Simulación punta a punta"),
@@ -63,15 +65,22 @@ VISTAS: list[tuple[str, str]] = [
     ("/antes-despues", "Antes / después"),
     ("/simulador", "Simulador docente"),
 ]
-# Ruta -> tarea del backlog que la implementa. Cada tarea quita su entrada al agregar la vista real.
-VISTAS_PENDIENTES: dict[str, str] = {
-}
-
 app = FastAPI(title="PULSO", description="Radar predictivo de sobrecarga académica")
 app.mount("/static", StaticFiles(directory=DIR_UI / "static"), name="static")
 app.include_router(api_router)  # API JSON de la simulación punta a punta (PUL-28)
 templates = Jinja2Templates(directory=DIR_UI / "templates")
-templates.env.filters["etiqueta_tipo"] = lambda tipo: tipo.value.replace("_", " ").capitalize()
+ETIQUETAS_TIPO: dict[TipoEvaluacion, str] = {
+    TipoEvaluacion.EXAMEN_PARCIAL: "Examen parcial",
+    TipoEvaluacion.EXAMEN_FINAL: "Examen final",
+    TipoEvaluacion.PRACTICA_CALIFICADA: "Práctica calificada",
+    TipoEvaluacion.LABORATORIO: "Laboratorio",
+    TipoEvaluacion.PROYECTO: "Proyecto",
+    TipoEvaluacion.EXPOSICION: "Exposición",
+    TipoEvaluacion.TAREA: "Tarea",
+    TipoEvaluacion.CONTROL_LECTURA: "Control de lectura",
+    TipoEvaluacion.OTRO: "Otro",
+}
+templates.env.filters["etiqueta_tipo"] = lambda tipo: ETIQUETAS_TIPO[tipo]
 DIAS_SEMANA = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
 templates.env.filters["fecha_con_dia"] = lambda f: f"{DIAS_SEMANA[f.weekday()]} {f.strftime('%d/%m/%Y')}"
 
@@ -111,8 +120,14 @@ def _leer_cohorte(ruta: Path, modificado: float) -> Cohorte:
     return cargar_cohorte(ruta)
 
 
+class CohorteSubidaNoDisponible(Exception):
+    """La cohorte subida vive en /tmp de una instancia de Vercel: si la función se reinicia, ya no está."""
+
+
 def validar_fuente(fuente: str) -> None:
     if fuente not in fuentes_disponibles():
+        if fuente == "subida":
+            raise CohorteSubidaNoDisponible
         raise HTTPException(status_code=404, detail=f"Fuente de datos no disponible: {fuente!r}")
 
 
@@ -139,6 +154,21 @@ def renderizar(request: Request, plantilla: str, fuente: str, status_code: int =
             **contexto,
         },
         status_code=status_code,
+    )
+
+
+@app.exception_handler(CohorteSubidaNoDisponible)
+def cohorte_subida_no_disponible(request: Request, _: CohorteSubidaNoDisponible) -> HTMLResponse:
+    """Página en vez de un JSON de error: el usuario llegó por un enlace de una subida anterior."""
+    return renderizar(
+        request,
+        "aviso.html",
+        FUENTE_POR_DEFECTO,
+        status_code=404,
+        titulo="Los sílabos subidos ya no están disponibles",
+        mensaje="Se guardan de forma temporal en el servidor, y el servidor se reinició. Vuelve a subirlos para seguir.",
+        enlace="/simulacion",
+        texto_enlace="Ir a Simulación punta a punta",
     )
 
 
@@ -329,8 +359,13 @@ def _propuesta(ruta: Path, modificado: float) -> Propuesta:
 
 @app.get("/antes-despues/propuesta", response_class=HTMLResponse)
 def propuesta(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLResponse:
-    """Fragmento HTML que /antes-despues carga con HTMX, para no esperar al LLM al abrir la vista."""
-    validar_fuente(fuente)
+    """Fragmento HTML que /antes-despues carga con HTMX, para no esperar al LLM al abrir la vista.
+
+    Responde siempre 200 con el fragmento: HTMX no reemplaza el contenido con respuestas de error,
+    y la pantalla se quedaría en "Redactando la propuesta…".
+    """
+    if fuente not in fuentes_disponibles():
+        return templates.TemplateResponse(request, "_propuesta.html", {"error": "la cohorte ya no está disponible"})
     ruta = FUENTES[fuente][1]
     try:
         if not _optimizar(ruta, ruta.stat().st_mtime).factible:
@@ -348,6 +383,15 @@ def _extraer_en_linea(pdf: Path) -> ResultadoExtraccion:
         raise RuntimeError("no está en la caché y el LLM no está configurado (LLM_API_KEY y LLM_MODEL)")
     cliente = crear_cliente(config, timeout=TIMEOUT_LLM_S)
     return extraer_evaluaciones(leer_pdf(pdf), cliente=cliente, modelo=config.modelo, max_intentos=1)
+
+
+def mensaje_para_usuario(error: str, limite: int = 240) -> str:
+    """Error apto para mostrar en la página pública: sin URLs ni datos de la cuenta del proveedor, y acotado.
+
+    El detalle completo queda en los logs del servidor (Vercel → Logs).
+    """
+    limpio = re.sub(r"\s*\S*https?://\S+", "", error).strip()
+    return limpio if len(limpio) <= limite else limpio[: limite - 1].rstrip() + "…"
 
 
 def _formulario_por_defecto() -> dict:
@@ -416,6 +460,10 @@ def simulacion_subir(
     reportes: list[ReporteSilabo] = []
 
     def rechazar(mensaje: str) -> HTMLResponse:
+        for reporte in reportes:  # los errores del LLM pueden traer URLs de la cuenta del proveedor
+            if reporte.error:
+                logger.warning("Sílabo %s: %s", reporte.archivo, reporte.error)
+                reporte.error = mensaje_para_usuario(reporte.error)
         return renderizar(
             request, "simulacion.html", FUENTE_POR_DEFECTO, status_code=422, formulario=formulario, error=mensaje, reportes=reportes
         )
@@ -461,9 +509,14 @@ def simulacion_subir(
                 al_procesar=reportes.append,
             )
         except (RuntimeError, ValueError) as error:  # ningún sílabo se pudo extraer, o la cohorte no valida
-            return rechazar(str(error))
+            logger.warning("Subida rechazada: %s", error)
+            return rechazar(mensaje_para_usuario(str(error)))
 
     guardar_cohorte(lote.cohorte, FUENTES["subida"][1])
+    for reporte in reportes:  # un sílabo pudo fallar aunque el resto armó la cohorte
+        if reporte.error:
+            logger.warning("Sílabo %s: %s", reporte.archivo, reporte.error)
+            reporte.error = mensaje_para_usuario(reporte.error)
     return renderizar(
         request,
         "simulacion.html",
@@ -474,16 +527,3 @@ def simulacion_subir(
         advertencias=lote.advertencias,
         **_pasos_simulacion("subida"),
     )
-
-
-def _vista_pendiente(ruta: str, titulo: str, tarea: str) -> None:
-    def vista(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLResponse:
-        validar_fuente(fuente)
-        return renderizar(request, "pendiente.html", fuente, titulo=titulo, tarea=tarea)
-
-    app.add_api_route(ruta, vista, methods=["GET"], response_class=HTMLResponse, name=f"pendiente{ruta}")
-
-
-for _ruta, _titulo in VISTAS:
-    if _ruta in VISTAS_PENDIENTES:
-        _vista_pendiente(_ruta, _titulo, VISTAS_PENDIENTES[_ruta])

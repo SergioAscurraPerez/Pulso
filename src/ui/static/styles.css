@@ -76,7 +76,7 @@ h1 { margin: 0; font-size: 1.5rem; }
 
 .tabla th, .tabla td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--borde); }
 .tabla th { background: var(--fondo); font-size: 0.85rem; color: var(--texto-suave); }
-.tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
+.tabla .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .pendiente { padding: 3rem 0; text-align: center; color: var(--texto-suave); }
 
