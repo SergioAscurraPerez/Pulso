@@ -1,0 +1,358 @@
+{
+  "nombre": "Ingeniería de Computación y Sistemas – ciclo-06 (2025-II)",
+  "ciclo": "2025-II",
+  "fecha_inicio": "2025-08-18",
+  "evaluaciones": [
+    {
+      "id": "ingenieria-de-costos--practica-calificada-1",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Práctica calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": "2025-09-09",
+      "peso": 11.11,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-costos--examen-parcial",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Examen Parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2025-10-07",
+      "peso": 33.33,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-costos--practica-calificada-2",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Práctica calificada 2",
+      "tipo": "practica_calificada",
+      "fecha": "2025-11-04",
+      "peso": 11.11,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-costos--practica-calificada-3-trabajo-aplicativo",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Práctica calificada 3 (trabajo aplicativo)",
+      "tipo": "practica_calificada",
+      "fecha": "2025-11-25",
+      "peso": 11.11,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-costos--examen-final",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": "2025-12-02",
+      "peso": 33.33,
+      "semana": 16,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--examen-parcial",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2025-10-06",
+      "peso": 33.33,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--examen-final",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Examen final",
+      "tipo": "examen_final",
+      "fecha": "2025-12-01",
+      "peso": 33.33,
+      "semana": 16,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--practica-1-p1",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Práctica 1 (P1)",
+      "tipo": "practica_calificada",
+      "fecha": "2025-09-08",
+      "peso": 10.0,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--practica-2-p2",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Práctica 2 (P2)",
+      "tipo": "practica_calificada",
+      "fecha": "2025-11-03",
+      "peso": 10.0,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--laboratorio-1-lb1",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Laboratorio 1 (Lb1)",
+      "tipo": "laboratorio",
+      "fecha": "2025-09-15",
+      "peso": 4.44,
+      "semana": 5,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--laboratorio-2-lb2",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Laboratorio 2 (Lb2)",
+      "tipo": "laboratorio",
+      "fecha": "2025-10-20",
+      "peso": 4.44,
+      "semana": 10,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--laboratorio-3-lb3",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Laboratorio 3 (Lb3)",
+      "tipo": "laboratorio",
+      "fecha": "2025-11-17",
+      "peso": 4.46,
+      "semana": 14,
+      "bloqueada": false
+    },
+    {
+      "id": "investigacion-operativa-i--practica-calificada-1",
+      "curso": "INVESTIGACIÓN OPERATIVA I",
+      "nombre": "Práctica calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": "2025-09-10",
+      "peso": 11.11,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "investigacion-operativa-i--examen-parcial",
+      "curso": "INVESTIGACIÓN OPERATIVA I",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2025-10-08",
+      "peso": 33.33,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "investigacion-operativa-i--practica-calificada-2",
+      "curso": "INVESTIGACIÓN OPERATIVA I",
+      "nombre": "Práctica calificada 2",
+      "tipo": "practica_calificada",
+      "fecha": "2025-10-29",
+      "peso": 11.11,
+      "semana": 11,
+      "bloqueada": false
+    },
+    {
+      "id": "investigacion-operativa-i--practica-calificada-3",
+      "curso": "INVESTIGACIÓN OPERATIVA I",
+      "nombre": "Práctica calificada 3",
+      "tipo": "practica_calificada",
+      "fecha": "2025-11-19",
+      "peso": 11.11,
+      "semana": 14,
+      "bloqueada": false
+    },
+    {
+      "id": "investigacion-operativa-i--examen-final",
+      "curso": "INVESTIGACIÓN OPERATIVA I",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": "2025-12-03",
+      "peso": 33.33,
+      "semana": 16,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--examen-parcial",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Examen Parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2025-10-09",
+      "peso": 25.0,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--examen-final",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": "2025-12-04",
+      "peso": 25.0,
+      "semana": 16,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--evaluacion-unidad-i",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Evaluación Unidad I",
+      "tipo": "otro",
+      "fecha": "2025-09-11",
+      "peso": 4.17,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--evaluacion-unidad-ii",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Evaluación Unidad II",
+      "tipo": "otro",
+      "fecha": "2025-10-02",
+      "peso": 4.17,
+      "semana": 7,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--evaluacion-unidad-iii",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Evaluación Unidad III",
+      "tipo": "otro",
+      "fecha": "2025-11-06",
+      "peso": 4.17,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--evaluacion-unidad-iv",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Evaluación Unidad IV",
+      "tipo": "otro",
+      "fecha": "2025-11-27",
+      "peso": 4.17,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--trabajo-grupal",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Trabajo grupal",
+      "tipo": "proyecto",
+      "fecha": "2025-11-20",
+      "peso": 16.67,
+      "semana": 14,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--laboratorio-reconocimiento-del-entorno-de-trabajo",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Laboratorio Reconocimiento del entorno de trabajo",
+      "tipo": "laboratorio",
+      "fecha": "2025-08-21",
+      "peso": 4.17,
+      "semana": 1,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--laboratorio-creacion-de-aplicaciones-web-usando-bootstrap",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Laboratorio Creación de aplicaciones Web usando Bootstrap",
+      "tipo": "laboratorio",
+      "fecha": "2025-08-28",
+      "peso": 4.17,
+      "semana": 2,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--laboratorio-creacion-de-formularios-web-con-bootstrap-usando-inputs-textareas-selects-y-buttons",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Laboratorio Creación de formularios Web con Bootstrap usando inputs, textareas, selects y buttons",
+      "tipo": "laboratorio",
+      "fecha": "2025-09-04",
+      "peso": 4.17,
+      "semana": 3,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--laboratorio-creacion-de-aplicaciones-web-usando-net-core-y-mvc",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Laboratorio Creación de aplicaciones Web usando .NET Core y MVC",
+      "tipo": "laboratorio",
+      "fecha": "2025-09-18",
+      "peso": 4.17,
+      "semana": 5,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--primera-practica-calificada",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Primera Practica Calificada",
+      "tipo": "practica_calificada",
+      "fecha": "2025-09-05",
+      "peso": 6.25,
+      "semana": 3,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--trabajo-1",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Trabajo 1",
+      "tipo": "tarea",
+      "fecha": "2025-09-19",
+      "peso": 25.0,
+      "semana": 5,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--segunda-practica-calificada",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Segunda Práctica Calificada",
+      "tipo": "practica_calificada",
+      "fecha": "2025-09-26",
+      "peso": 6.25,
+      "semana": 6,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--examen-parcial",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Examen Parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2025-10-03",
+      "peso": 25.0,
+      "semana": 7,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--tercera-practica-calificada",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Tercera Práctica Calificada",
+      "tipo": "practica_calificada",
+      "fecha": "2025-10-24",
+      "peso": 6.25,
+      "semana": 10,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--cuarta-practica-calificada",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Cuarta Práctica Calificada",
+      "tipo": "practica_calificada",
+      "fecha": "2025-11-14",
+      "peso": 6.25,
+      "semana": 13,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--examen-final",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": "2025-12-05",
+      "peso": 25.0,
+      "semana": 16,
+      "bloqueada": false
+    }
+  ],
+  "grupos": []
+}

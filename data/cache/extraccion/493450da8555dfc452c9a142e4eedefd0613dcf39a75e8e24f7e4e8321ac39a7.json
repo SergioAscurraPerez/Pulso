@@ -1,0 +1,119 @@
+{
+  "archivo": "programacion-i-2025-II.pdf",
+  "curso": "PROGRAMACIÓN I",
+  "extraido_en": "2026-11-07T19:51:13+00:00",
+  "intentos": 1,
+  "advertencias": [],
+  "evaluaciones": [
+    {
+      "id": "programacion-i--examen-parcial",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Examen Parcial",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--examen-final",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 16,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--evaluacion-unidad-i",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Evaluación Unidad I",
+      "tipo": "otro",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--evaluacion-unidad-ii",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Evaluación Unidad II",
+      "tipo": "otro",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 7,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--evaluacion-unidad-iii",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Evaluación Unidad III",
+      "tipo": "otro",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--evaluacion-unidad-iv",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Evaluación Unidad IV",
+      "tipo": "otro",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--trabajo-grupal",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Trabajo grupal",
+      "tipo": "proyecto",
+      "fecha": null,
+      "peso": 16.67,
+      "semana": 14,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--laboratorio-reconocimiento-del-entorno-de-trabajo",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Laboratorio Reconocimiento del entorno de trabajo",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 1,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--laboratorio-creacion-de-aplicaciones-web-usando-bootstrap",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Laboratorio Creación de aplicaciones Web usando Bootstrap",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 2,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--laboratorio-creacion-de-formularios-web-con-bootstrap-usando-inputs-textareas-selects-y-buttons",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Laboratorio Creación de formularios Web con Bootstrap usando inputs, textareas, selects y buttons",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 3,
+      "bloqueada": false
+    },
+    {
+      "id": "programacion-i--laboratorio-creacion-de-aplicaciones-web-usando-net-core-y-mvc",
+      "curso": "PROGRAMACIÓN I",
+      "nombre": "Laboratorio Creación de aplicaciones Web usando .NET Core y MVC",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 5,
+      "bloqueada": false
+    }
+  ]
+}

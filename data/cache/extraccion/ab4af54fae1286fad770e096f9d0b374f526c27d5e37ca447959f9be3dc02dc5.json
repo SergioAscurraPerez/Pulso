@@ -1,0 +1,63 @@
+{
+  "archivo": "ingenieria-de-costos-2025-II.pdf",
+  "curso": "INGENIERÍA DE COSTOS",
+  "extraido_en": "2026-11-07T19:48:12+00:00",
+  "intentos": 1,
+  "advertencias": [
+    "Semana estimada (el sílabo no la indica): Práctica calificada 1 → semana 4",
+    "Semana estimada (el sílabo no la indica): Práctica calificada 2 → semana 12",
+    "Semana estimada (el sílabo no la indica): Práctica calificada 3 (trabajo aplicativo) → semana 15"
+  ],
+  "evaluaciones": [
+    {
+      "id": "ingenieria-de-costos--practica-calificada-1",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Práctica calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 11.11,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-costos--examen-parcial",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Examen Parcial",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 33.33,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-costos--practica-calificada-2",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Práctica calificada 2",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 11.11,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-costos--practica-calificada-3-trabajo-aplicativo",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Práctica calificada 3 (trabajo aplicativo)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 11.11,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-costos--examen-final",
+      "curso": "INGENIERÍA DE COSTOS",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 33.33,
+      "semana": 16,
+      "bloqueada": false
+    }
+  ]
+}
