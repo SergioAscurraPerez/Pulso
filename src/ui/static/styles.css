@@ -193,6 +193,46 @@ h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
 .propuesta h3 { margin: 1rem 0 0.4rem; font-size: 1rem; }
 .propuesta h3:first-child { margin-top: 0; }
 .propuesta p, .propuesta ul { margin: 0 0 0.5rem; }
+
+/* Simulación punta a punta (PUL-29). */
+.entradas { display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem; }
+.entradas .formulario { margin-bottom: 0.5rem; }
+.boton {
+  display: inline-block;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  background: var(--acento);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.boton:hover, .boton:focus-visible { filter: brightness(0.92); }
+
+.pasos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.pasos a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--superficie);
+  color: var(--texto);
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+.pasos a:hover, .pasos a:focus-visible { border-color: var(--texto-suave); }
+.paso { scroll-margin-top: 1rem; }
+.paso .metricas { margin-bottom: 0.5rem; }
+.progreso { color: var(--texto-suave); font-style: italic; }
+.aviso-texto { color: var(--critico); }
+.siguiente { margin: 0.75rem 0 0; }
 .formulario button { background: var(--acento); border-color: var(--acento); color: #fff; font-weight: 600; cursor: pointer; }
 .metrica.riesgo { border-color: var(--critico); }
 .metrica.riesgo .metrica-valor { color: var(--critico); font-size: 2rem; }
@@ -200,6 +240,8 @@ h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
 
 @media (max-width: 700px) {
   .comparacion { grid-template-columns: 1fr; }
+  .entradas { grid-template-columns: 1fr; }
+  .pasos { grid-template-columns: repeat(2, 1fr); }
   .barra { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
   .tabla { display: block; overflow-x: auto; }
 }

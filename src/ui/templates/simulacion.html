@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% from "_heatmap.html" import heatmap, leyenda %}
+{% block titulo %}Simulación punta a punta{% endblock %}
+{% block contenido %}
+<section class="cabecera">
+  <div>
+    <h1>Simulación punta a punta</h1>
+    <p class="detalle">De los sílabos en PDF a una propuesta para el coordinador: Leer → Medir → Optimizar → Proponer.</p>
+  </div>
+</section>
+
+<section class="entradas">
+  <div class="panel">
+    <h2>Ciclo 7 · sílabos reales</h2>
+    <p class="detalle">Sílabos de Ingeniería de Computación y Sistemas (USMP 2026-I), ya extraídos: el resultado sale al instante.</p>
+    {% if "cohorte" in fuentes %}
+      <a class="boton" href="/simulacion?fuente=cohorte#leer">Simular con el ciclo 7</a>
+    {% else %}
+      <p>Todavía no hay una cohorte extraída (data/cohorte.json).</p>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Tus sílabos</h2>
+    <form class="formulario" method="post" action="/simulacion" enctype="multipart/form-data"
+          onsubmit="this.querySelector('button').disabled = true; document.getElementById('progreso').hidden = false;">
+      <label class="campo">Sílabos (PDF, máx. 4 MB en total)
+        <input type="file" name="archivos" accept="application/pdf,.pdf" multiple required>
+      </label>
+      <label class="campo">Ciclo
+        <input type="text" name="ciclo" required placeholder="2026-I" value="{{ formulario.ciclo }}">
+      </label>
+      <label class="campo">Lunes de la semana 1
+        <input type="date" name="fecha_inicio" required value="{{ formulario.fecha_inicio.isoformat() if formulario.fecha_inicio else '' }}">
+      </label>
+      <label class="campo">Nombre de la cohorte (opcional)
+        <input type="text" name="nombre" value="{{ formulario.nombre }}">
+      </label>
+      <button type="submit">Simular</button>
+    </form>
+    <p id="progreso" class="progreso" role="status" hidden>Leyendo los sílabos… los ya procesados salen de la caché al instante;
+      los nuevos se extraen con el LLM (unos segundos cada uno).</p>
+    <p class="detalle">Si un sílabo no alcanza a procesarse, vuelve a subirlo: lo ya extraído queda guardado.</p>
+  </div>
+</section>
+
+{% if error %}
+  <section class="panel aviso">
+    <h2>No se pudo armar la cohorte</h2>
+    <p>{{ error }}</p>
+    {% if reportes %}
+      <ul class="reportes">
+        {% for r in reportes if r.error %}<li><strong>{{ r.archivo }}</strong>: {{ r.error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+{% endif %}
+
+{% if cohorte %}
+  <ol class="pasos">
+    <li><a href="#leer">1 · Leer</a></li>
+    <li><a href="#medir">2 · Medir</a></li>
+    <li><a href="#optimizar">3 · Optimizar</a></li>
+    <li><a href="#proponer">4 · Proponer</a></li>
+  </ol>
+
+  <section id="leer" class="panel paso">
+    <h2>1 · Leer: sílabos → evaluaciones</h2>
+    <p>{{ cohorte.nombre }}: <strong>{{ cohorte.cursos | length }} cursos</strong> y
+      <strong>{{ cohorte.evaluaciones | length }} evaluaciones</strong> con fecha, tipo y peso.</p>
+    <ul class="reportes">
+      {% if reportes %}
+        {% for r in reportes %}
+          <li>
+            {% if r.error %}
+              <span class="etiqueta-critica">Error</span> <strong>{{ r.archivo }}</strong>: {{ r.error }}
+            {% else %}
+              <strong>{{ r.curso }}</strong> · {{ r.evaluaciones }} evaluaciones ({{ "caché" if r.desde_cache else "LLM" }})
+            {% endif %}
+          </li>
+        {% endfor %}
+      {% else %}
+        {% for curso, total in evaluaciones_por_curso %}<li><strong>{{ curso }}</strong> · {{ total }} evaluaciones</li>{% endfor %}
+      {% endif %}
+    </ul>
+    {% if advertencias %}
+      <details>
+        <summary class="detalle">{{ advertencias | length }} avisos de la normalización</summary>
+        <ul class="reportes">{% for a in advertencias %}<li>{{ a }}</li>{% endfor %}</ul>
+      </details>
+    {% endif %}
+  </section>
+
+  <section id="medir" class="panel paso">
+    <h2>2 · Medir: carga semanal y colisiones</h2>
+    <p>{% if calendario.semana_pico %}Semana más cargada: la <strong>{{ calendario.semana_pico }}</strong> ({{ '%g' % calendario.pico }}). {% endif %}
+      <strong>{{ calendario.colisiones | length }} colisiones</strong>: 3 o más evaluaciones fuertes en 72 h.</p>
+    {{ leyenda() }}
+    {{ heatmap(calendario.semanas, fuente=fuente) }}
+    <p><a href="/carga?fuente={{ fuente }}">Ver la carga semanal con el detalle de cada semana</a></p>
+  </section>
+
+  <section id="optimizar" class="panel paso">
+    <h2>3 · Optimizar: reprogramación con CP-SAT</h2>
+    {% if resultado %}
+      <div class="metricas">
+        <div class="metrica destacada">
+          <span class="metrica-valor">{{ '%g' % resultado.reduccion_pico_pct }} %</span>
+          <span class="metrica-titulo">Reducción del pico de carga</span>
+        </div>
+        <div class="metrica">
+          <span class="metrica-valor">{{ resultado.colisiones_antes }} → {{ resultado.colisiones_despues }}</span>
+          <span class="metrica-titulo">Colisiones</span>
+        </div>
+        <div class="metrica">
+          <span class="metrica-valor">{{ resultado.movimientos | length }}</span>
+          <span class="metrica-titulo">Evaluaciones movidas (las bloqueadas no se tocan)</span>
+        </div>
+      </div>
+      <p class="detalle">Solver: {{ resultado.estado }} en {{ '%g' % resultado.tiempo_s }} s.
+        <a href="/antes-despues?fuente={{ fuente }}">Ver antes / después y cada movimiento</a></p>
+    {% else %}
+      <p class="aviso-texto">{{ error_optimizar }}</p>
+    {% endif %}
+  </section>
+
+  <section id="proponer" class="panel paso">
+    <h2>4 · Proponer: mensaje para el coordinador</h2>
+    {% if resultado %}
+      {# Se pide aparte para que la pantalla no espere al LLM. #}
+      <div hx-get="/antes-despues/propuesta?fuente={{ fuente }}" hx-trigger="load" hx-swap="outerHTML">
+        <p class="progreso" role="status">Redactando la propuesta…</p>
+      </div>
+    {% endif %}
+    <p class="siguiente">
+      {% if caso_simulador %}
+        {% set evaluacion, fecha_caso = caso_simulador %}
+        ¿Y si un docente quiere fijar otra fecha?
+        <a class="boton" href="/simulador?fuente={{ fuente }}&evaluacion={{ evaluacion.id | urlencode }}&fecha={{ fecha_caso.isoformat() }}">Probar en el simulador docente: {{ evaluacion.nombre }} ({{ evaluacion.curso }})</a>
+      {% else %}
+        <a class="boton" href="/simulador?fuente={{ fuente }}">Abrir el simulador docente</a>
+      {% endif %}
+    </p>
+  </section>
+{% endif %}
+{% endblock %}

@@ -6,6 +6,7 @@ Local: uvicorn src.app:app --reload
 from __future__ import annotations
 
 import hashlib
+from collections import Counter
 import re
 import tempfile
 import time
@@ -15,7 +16,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup, escape
@@ -57,10 +58,10 @@ PRESUPUESTO_LLM_S = 15  # pasado este tiempo no se empieza otra extracción: 15 
 # Navegación: (ruta, título). Las vistas sin implementar muestran una página "en construcción".
 VISTAS: list[tuple[str, str]] = [
     ("/", "Cohorte"),
+    ("/simulacion", "Simulación punta a punta"),
     ("/carga", "Carga semanal"),
     ("/antes-despues", "Antes / después"),
     ("/simulador", "Simulador docente"),
-    ("/cargar", "Subir sílabos"),
 ]
 # Ruta -> tarea del backlog que la implementa. Cada tarea quita su entrada al agregar la vista real.
 VISTAS_PENDIENTES: dict[str, str] = {
@@ -355,15 +356,55 @@ def _formulario_por_defecto() -> dict:
     return {"ciclo": cohorte.ciclo if cohorte else "", "fecha_inicio": cohorte.fecha_inicio if cohorte else None, "nombre": ""}
 
 
-@app.get("/cargar", response_class=HTMLResponse)
-def cargar(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLResponse:
-    """Formulario para subir sílabos PDF y armar una cohorte (PUL-17)."""
-    validar_fuente(fuente)
-    return renderizar(request, "cargar.html", fuente, formulario=_formulario_por_defecto())
+def _pasos_simulacion(fuente: str) -> dict:
+    """Medir y Optimizar de la simulación punta a punta (PUL-29) para una cohorte ya leída.
+
+    Usa las mismas funciones (y cachés) que /carga, /antes-despues y la propuesta: los números
+    de esta pantalla y los de la propuesta salen del mismo resultado del solver.
+    """
+    cohorte = obtener_cohorte(fuente)
+    ruta = FUENTES[fuente][1]
+    calendario = construir_calendario(cohorte)
+    contexto: dict = {
+        "cohorte": cohorte,
+        "calendario": calendario,
+        "evaluaciones_por_curso": sorted(Counter(e.curso for e in cohorte.evaluaciones).items()),
+        "resultado": None,
+    }
+    try:
+        resultado = _optimizar(ruta, ruta.stat().st_mtime)
+        if resultado.factible:
+            contexto["resultado"] = resultado
+        else:
+            contexto["error_optimizar"] = f"El optimizador no encontró una reprogramación válida (estado: {resultado.estado})."
+    except ValueError as error:  # p. ej. evaluaciones sin fecha
+        contexto["error_optimizar"] = str(error)
+    # Caso para el simulador docente: una evaluación movible que hoy está en una colisión, de preferencia
+    # una para la que el simulador encuentra una fecha mejor (los exámenes no salen de su semana de exámenes).
+    casos = [(e, c.fechas[e.id]) for c in calendario.colisiones for e in c.evaluaciones if not e.bloqueada]
+    contexto["caso_simulador"] = next(
+        (caso for caso in casos if simular(cohorte, *caso).mejor_alternativa), casos[0] if casos else None
+    )
+    return contexto
 
 
-@app.post("/cargar", response_class=HTMLResponse)
-def cargar_procesar(
+@app.get("/simulacion", response_class=HTMLResponse)
+def simulacion(request: Request, fuente: str | None = None) -> HTMLResponse:
+    """Simulación punta a punta (PUL-29): ciclo 7 o sílabos subidos → Leer → Medir → Optimizar → Proponer."""
+    contexto = {"formulario": _formulario_por_defecto(), "seleccion": fuente}
+    if fuente:
+        contexto |= _pasos_simulacion(fuente)
+    return renderizar(request, "simulacion.html", fuente or FUENTE_POR_DEFECTO, **contexto)
+
+
+@app.get("/cargar", include_in_schema=False)
+def cargar() -> RedirectResponse:
+    """La subida de sílabos (PUL-17) ahora vive en la simulación punta a punta."""
+    return RedirectResponse("/simulacion", status_code=307)
+
+
+@app.post("/simulacion", response_class=HTMLResponse)
+def simulacion_subir(
     request: Request,
     archivos: list[UploadFile] = File(...),
     ciclo: str = Form(...),
@@ -376,7 +417,7 @@ def cargar_procesar(
 
     def rechazar(mensaje: str) -> HTMLResponse:
         return renderizar(
-            request, "cargar.html", FUENTE_POR_DEFECTO, status_code=422, formulario=formulario, error=mensaje, reportes=reportes
+            request, "simulacion.html", FUENTE_POR_DEFECTO, status_code=422, formulario=formulario, error=mensaje, reportes=reportes
         )
 
     if not formulario["ciclo"]:
@@ -423,7 +464,16 @@ def cargar_procesar(
             return rechazar(str(error))
 
     guardar_cohorte(lote.cohorte, FUENTES["subida"][1])
-    return renderizar(request, "cargar.html", "subida", formulario=formulario, lote=lote, reportes=reportes)
+    return renderizar(
+        request,
+        "simulacion.html",
+        "subida",
+        formulario=formulario,
+        seleccion="subida",
+        reportes=reportes,
+        advertencias=lote.advertencias,
+        **_pasos_simulacion("subida"),
+    )
 
 
 def _vista_pendiente(ruta: str, titulo: str, tarea: str) -> None:
