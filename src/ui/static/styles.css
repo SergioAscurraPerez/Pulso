@@ -163,6 +163,9 @@ h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
 .metrica.destacada { border-color: var(--ok); }
 .metrica.destacada .metrica-valor { color: var(--ok); font-size: 2rem; }
 
+.comparacion { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.comparacion .heatmap { margin-bottom: 0; }
+
 .aviso { border-color: var(--critico); }
 
 /* Simulador docente (PUL-18). */
@@ -190,6 +193,7 @@ h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
 .metrica a { margin-top: 0.4rem; font-size: 0.85rem; color: var(--acento); }
 
 @media (max-width: 700px) {
+  .comparacion { grid-template-columns: 1fr; }
   .barra { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
   .tabla { display: block; overflow-x: auto; }
 }
