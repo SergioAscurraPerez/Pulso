@@ -88,3 +88,31 @@ def test_carga_con_el_mock():
     respuesta = cliente.get("/carga")
     assert respuesta.status_code == 200
     assert "en construcción" not in respuesta.text
+
+
+def test_simulador_sin_parametros_muestra_el_formulario():
+    respuesta = cliente.get("/simulador")
+    assert respuesta.status_code == 200
+    assert "Elige una evaluación" in respuesta.text
+    assert "en construcción" not in respuesta.text
+
+
+def test_simulador_da_riesgo_y_fecha_sugerida(tmp_path, monkeypatch):
+    _cohorte_con_colision(tmp_path, monkeypatch)
+    params = {"fuente": "cohorte", "evaluacion": "curso-c--practica-1", "fecha": "2026-09-03"}
+    respuesta = cliente.get("/simulador", params=params)
+    assert respuesta.status_code == 200
+    # Sin grupos de matrícula, todos llevan los 3 cursos: el 3 de setiembre choca para el 100 %.
+    assert "100 %" in respuesta.text
+    # La mejor alternativa sin colisión y con menor carga es el lunes 7 de setiembre (semana 3).
+    assert "lun 07/09/2026" in respuesta.text
+    assert "fecha=2026-09-07" in respuesta.text
+
+
+def test_simulador_valida_evaluacion_y_fecha(tmp_path, monkeypatch):
+    _cohorte_con_colision(tmp_path, monkeypatch)
+    no_existe = cliente.get("/simulador", params={"fuente": "cohorte", "evaluacion": "no-existe", "fecha": "2026-09-03"})
+    assert no_existe.status_code == 404
+    fuera = cliente.get("/simulador", params={"fuente": "cohorte", "evaluacion": "curso-c--practica-1", "fecha": "2027-03-01"})
+    assert fuera.status_code == 200
+    assert "La fecha debe estar dentro del ciclo" in fuera.text
