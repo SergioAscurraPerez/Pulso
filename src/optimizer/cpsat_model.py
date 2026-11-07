@@ -121,7 +121,11 @@ def resolver(mp: ModeloPulso, minimizar_movimientos: bool = True) -> Solucion:
         mp.modelo.minimize(sum(mp.desplazamiento.values()))
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = mp.config.tiempo_max_s
-    solver.parameters.num_workers = 8
+    # Un solo hilo y semilla fija: con varios hilos, entre soluciones empatadas en el objetivo gana
+    # la de cualquier hilo, y el mismo ciclo da distintas evaluaciones movidas según la máquina
+    # (local vs. Vercel). Con ~40 evaluaciones resuelve igual de rápido (~0,2 s).
+    solver.parameters.num_workers = 1
+    solver.parameters.random_seed = 0
     inicio = time.perf_counter()
     status = solver.solve(mp.modelo)
     tiempo = time.perf_counter() - inicio
