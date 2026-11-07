@@ -8,6 +8,11 @@ from fastapi.testclient import TestClient
 import src.app as app_modulo
 
 cliente = TestClient(app_modulo.app)
+
+
+def _solo_ciclo_7(monkeypatch):
+    for clave in [c for c in app_modulo.FUENTES if c.startswith("ciclo-")]:
+        monkeypatch.delitem(app_modulo.FUENTES, clave)
 MOCK = Path("data/mock/evaluaciones_mock.json")
 REAL = Path("data/cohorte.json")
 
@@ -21,8 +26,7 @@ def test_registrar_ciclos_ordena_por_numero_y_no_abre_los_json(tmp_path):
 
 
 def test_con_un_solo_ciclo_avisa_sin_mostrar_comandos(monkeypatch):
-    for clave in [c for c in app_modulo.FUENTES if c.startswith("ciclo-")]:
-        monkeypatch.delitem(app_modulo.FUENTES, clave)
+    _solo_ciclo_7(monkeypatch)
     respuesta = cliente.get("/comparar")
     assert respuesta.status_code == 200
     assert "Por ahora solo hay un ciclo procesado" in respuesta.text
@@ -31,6 +35,7 @@ def test_con_un_solo_ciclo_avisa_sin_mostrar_comandos(monkeypatch):
 
 
 def test_compara_ciclos_y_senala_el_mas_sobrecargado(tmp_path, monkeypatch):
+    _solo_ciclo_7(monkeypatch)
     ciclo5 = tmp_path / "ciclo-05.json"
     shutil.copy(MOCK, ciclo5)  # el mock: 3 colisiones, pico 255
     monkeypatch.setitem(app_modulo.FUENTES, "ciclo-05", ("Ciclo 5 · sílabos reales", ciclo5))
@@ -47,6 +52,13 @@ def test_compara_ciclos_y_senala_el_mas_sobrecargado(tmp_path, monkeypatch):
 
 
 def test_el_mismo_ciclo_guardado_dos_veces_cuenta_una(monkeypatch):
+    _solo_ciclo_7(monkeypatch)
     monkeypatch.setitem(app_modulo.FUENTES, "ciclo-07", ("Ciclo 7 · sílabos reales", REAL))
     texto = cliente.get("/comparar").text
     assert texto.count('class="matriz-celda') == 17
+
+
+def test_el_ciclo_6_del_repo_se_compara_con_el_7():
+    texto = cliente.get("/comparar").text
+    assert "Por ahora solo hay" not in texto
+    assert texto.index("Ciclo 6") < texto.index("Ciclo 7")
