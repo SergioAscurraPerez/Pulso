@@ -22,3 +22,6 @@ Thumbs.db
 
 # Vercel CLI (vercel link)
 .vercel/
+
+# Capturas y reportes de trabajo de las skills de diseño
+.taste-skill/

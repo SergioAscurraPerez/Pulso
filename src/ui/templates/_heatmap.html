@@ -1,33 +1,73 @@
-{# Heatmap de las semanas del ciclo. La intensidad va en azul y las semanas críticas, en rojo.
-   Con `fuente`, cada celda es un enlace al detalle de su semana en /carga; sin ella, es solo lectura. #}
-{% macro heatmap(semanas, fuente=None, seleccionada=None) %}
-<ol class="heatmap">
-  {% for s in semanas %}
-    {% set etiqueta %}Semana {{ s.numero }}: carga {{ '%g' % s.carga }}{% if s.critica %}, semana crítica{% endif %}{% endset %}
-    <li>
-      {% if fuente %}
-        <a class="celda{% if s.critica %} critica{% endif %}"
-           href="/carga?fuente={{ fuente }}&semana={{ s.numero }}"
-           style="--intensidad: {{ '%.2f' % s.intensidad }}"
-           aria-label="{{ etiqueta }}"
-           {% if seleccionada and seleccionada.numero == s.numero %}aria-current="true"{% endif %}>
-      {% else %}
-        <div class="celda{% if s.critica %} critica{% endif %}"
-             style="--intensidad: {{ '%.2f' % s.intensidad }}"
-             role="img" aria-label="{{ etiqueta }}">
-      {% endif %}
-          <span class="celda-semana">S{{ s.numero }}</span>
-          <span class="celda-carga">{{ '%g' % s.carga }}</span>
-      {% if fuente %}</a>{% else %}</div>{% endif %}
-    </li>
-  {% endfor %}
-</ol>
+{# La cinta del semestre: las 17 semanas del ciclo en una fila, una columna por semana.
+   La altura de cada barra es la carga de esa semana (en el tono de datos). Debajo, la marca roja
+   señala las semanas con una colisión (≥3 evaluaciones fuertes en 72 h).
+   - `fuente`: cada columna es un enlace al detalle de su semana en /carga.
+   - `previas`: semanas del escenario anterior; se dibujan en gris junto a las actuales (antes / después).
+   - `escala`: carga que llega al tope del eje (para comparar dos calendarios con la misma escala). #}
+
+{% macro heatmap(semanas, fuente=None, seleccionada=None, previas=None, escala=None, pico=None) %}
+  {%- set maximo = escala or ([semanas | map(attribute='carga') | max, (previas | map(attribute='carga') | max) if previas else 0] | max) -%}
+  {%- set ticks = escala_ticks(maximo) -%}
+  {%- set tope = ticks | last or 1 -%}
+  <figure class="cinta">
+    <div class="cinta-plano">
+      <ol class="cinta-eje" aria-hidden="true">
+        {% for t in ticks %}<li style="bottom: {{ '%.2f' % (100 * t / tope) }}%"><span>{{ '%g' % t }}</span></li>{% endfor %}
+      </ol>
+      <ol class="heatmap">
+        {% for s in semanas %}
+          {% set etiqueta %}Semana {{ s.numero }}: carga {{ '%g' % s.carga }}{% if s.critica %}, semana crítica{% endif %}{% endset %}
+          {% set altura = s.carga / tope %}
+          <li>
+            {% if previas %}
+              {% set p = previas[loop.index0] %}
+              {% set ap = p.carga / tope %}
+              <span class="celda{% if p.critica %} critica{% endif %}" data-serie="antes" style="--intensidad: {{ '%.3f' % ap }}"
+                    role="img" aria-label="Antes · Semana {{ p.numero }}: carga {{ '%g' % p.carga }}{% if p.critica %}, semana crítica{% endif %}">
+                <span class="barra-carga"></span>
+              </span>
+              <span class="celda{% if s.critica %} critica{% endif %}" data-serie="despues" style="--intensidad: {{ '%.3f' % altura }}"
+                    role="img" aria-label="Después · {{ etiqueta }}">
+                <span class="barra-carga"></span>
+              </span>
+            {% elif fuente %}
+              <a class="celda{% if s.critica %} critica{% endif %}"
+                 href="/carga?fuente={{ fuente }}&semana={{ s.numero }}"
+                 style="--intensidad: {{ '%.3f' % altura }}"
+                 aria-label="{{ etiqueta }}"
+                 {% if seleccionada and seleccionada.numero == s.numero %}aria-current="true"{% endif %}>
+                <span class="celda-carga{% if not s.carga %} cero{% endif %}" aria-hidden="true">{{ '%g' % s.carga }}</span>
+                <span class="barra-carga"></span>
+              </a>
+            {% else %}
+              <div class="celda{% if s.critica %} critica{% endif %}"
+                   style="--intensidad: {{ '%.3f' % altura }}"
+                   role="img" aria-label="{{ etiqueta }}"
+                   {% if seleccionada and seleccionada.numero == s.numero %}aria-current="true"{% endif %}>
+                <span class="celda-carga{% if not s.carga %} cero{% endif %}" aria-hidden="true">{{ '%g' % s.carga }}</span>
+                <span class="barra-carga"></span>
+              </div>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ol>
+    </div>
+    <ol class="cinta-semanas" aria-hidden="true">
+      {% for s in semanas %}
+        <li class="{% if s.critica %}critica{% endif %}{% if pico and s.numero == pico %} pico{% endif %}"><span class="s-pref">S</span>{{ s.numero }}</li>
+      {% endfor %}
+    </ol>
+  </figure>
 {% endmacro %}
 
-{% macro leyenda() %}
+{% macro leyenda(comparar=False) %}
 <ul class="leyenda">
-  <li><span class="muestra muestra-baja"></span>Carga baja</li>
-  <li><span class="muestra muestra-alta"></span>Carga alta</li>
-  <li><span class="muestra muestra-critica"></span>Semana crítica</li>
+  {% if comparar %}
+    <li><span class="muestra muestra-previo"></span>Antes</li>
+    <li><span class="muestra"></span>Después</li>
+  {% else %}
+    <li><span class="muestra"></span>Carga de la semana</li>
+  {% endif %}
+  <li><span class="muestra muestra-critica"></span>{{ "Sigue con colisión" if comparar else "Semana con colisión" }}</li>
 </ul>
 {% endmacro %}

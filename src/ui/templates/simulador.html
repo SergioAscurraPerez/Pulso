@@ -1,75 +1,98 @@
 {% extends "base.html" %}
+{% from "_heatmap.html" import heatmap, leyenda %}
 {% block titulo %}Simulador docente{% endblock %}
 {% block contenido %}
 <section class="cabecera">
   <div>
     <h1>Simulador docente</h1>
-    <p class="detalle">{{ cohorte.nombre }} · antes de fijar una fecha, mira cuántos de tus alumnos quedarían con una colisión</p>
+    <p class="hallazgo">Antes de fijar una fecha, mira cuántos de tus alumnos tendrían tres evaluaciones fuertes en 72 horas.</p>
   </div>
 </section>
 
 {# Con HTMX, el formulario trae la misma página y reemplaza solo este bloque; sin JavaScript, recarga la página. #}
 <div id="vista-simulador" hx-boost="true" hx-select="#vista-simulador" hx-target="#vista-simulador" hx-swap="outerHTML show:none">
-  <form class="formulario" method="get" action="/simulador">
-    <input type="hidden" name="fuente" value="{{ fuente }}">
-    <label class="campo">Evaluación
-      <select name="evaluacion" required>
-        <option value="" disabled {% if not seleccionada %}selected{% endif %}>Elige una evaluación…</option>
-        {% for curso in cohorte.cursos %}
-          <optgroup label="{{ curso }}">
-            {% for e in evaluaciones if e.curso == curso %}
-              <option value="{{ e.id }}" {% if seleccionada and seleccionada.id == e.id %}selected{% endif %}>
-                {{ e.nombre }}{% if e.fecha %} ({{ e.fecha.strftime('%d/%m') }}){% endif %}{% if e.bloqueada %} · bloqueada{% endif %}
-              </option>
-            {% endfor %}
-          </optgroup>
-        {% endfor %}
-      </select>
-    </label>
-    <label class="campo">Fecha
-      <input type="date" name="fecha" required value="{{ fecha.isoformat() if fecha else '' }}"
-             min="{{ cohorte.fecha_inicio.isoformat() }}" max="{{ fin_ciclo.isoformat() }}">
-    </label>
-    <button type="submit">Simular</button>
-  </form>
+  <section class="panel">
+    <form class="formulario" method="get" action="/simulador">
+      <input type="hidden" name="fuente" value="{{ fuente }}">
+      <label class="campo campo-ancho">Evaluación
+        <select name="evaluacion" required>
+          <option value="" disabled {% if not seleccionada %}selected{% endif %}>Elige una evaluación…</option>
+          {% for curso in cohorte.cursos %}
+            <optgroup label="{{ curso | nombre_curso }}">
+              {% for e in evaluaciones if e.curso == curso %}
+                <option value="{{ e.id }}" {% if seleccionada and seleccionada.id == e.id %}selected{% endif %}>
+                  {{ e.nombre }}{% if e.fecha %} ({{ e.fecha.strftime('%d/%m') }}){% endif %}{% if e.bloqueada %} · bloqueada{% endif %}
+                </option>
+              {% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="campo">Fecha
+        <input type="date" name="fecha" required value="{{ fecha.isoformat() if fecha else '' }}"
+               min="{{ cohorte.fecha_inicio.isoformat() }}" max="{{ fin_ciclo.isoformat() }}">
+      </label>
+      <button type="submit">Simular</button>
+    </form>
+  </section>
 
   {% if error %}
     <section class="panel aviso"><p>{{ error }}</p></section>
   {% elif resultado %}
     {% set propuesta = resultado.propuesta %}
     {% set mejor = resultado.mejor_alternativa %}
-    <section class="metricas">
-      <div class="metrica {{ 'riesgo' if propuesta.pct_colision else 'destacada' }}">
-        <span class="metrica-valor">{{ '%g' % propuesta.pct_colision }} %</span>
-        <span class="metrica-titulo">de los alumnos de {{ seleccionada.curso }} con colisión el {{ propuesta.fecha | fecha_con_dia }}
+    <section class="kpis" style="--n: 3" aria-label="Resultado de la simulación">
+      <div class="kpi">
+        <span class="kpi-etiqueta">{{ seleccionada.nombre }} · {{ propuesta.fecha | fecha_con_dia }}</span>
+        <span class="kpi-valor {{ 'riesgo' if propuesta.pct_colision else 'bien' }}">{{ '%g' % propuesta.pct_colision }} %</span>
+        <span class="kpi-nota">de los alumnos de {{ seleccionada.curso | nombre_curso }} con colisión el {{ propuesta.fecha | fecha_con_dia }}
           {% if cohorte.grupos %}({{ propuesta.alumnos_con_colision }} de {{ propuesta.alumnos_del_curso }}){% endif %}</span>
       </div>
-      <div class="metrica">
-        <span class="metrica-valor">{{ '%g' % propuesta.carga_semana }}</span>
-        <span class="metrica-titulo">Carga de esa semana</span>
+      <div class="kpi">
+        <span class="kpi-etiqueta">Carga de esa semana</span>
+        <span class="kpi-valor">{{ '%g' % propuesta.carga_semana }}</span>
+        <span class="kpi-nota">índice Σ peso × tipo de la semana elegida</span>
       </div>
-      <div class="metrica{% if mejor %} destacada{% endif %}">
+      <div class="kpi">
         {% if mejor %}
-          <span class="metrica-valor">{{ mejor.fecha | fecha_con_dia }}</span>
-          <span class="metrica-titulo">Fecha sugerida: {{ '%g' % mejor.pct_colision }} % con colisión, carga de la semana {{ '%g' % mejor.carga_semana }}</span>
-          <a href="/simulador?fuente={{ fuente }}&evaluacion={{ seleccionada.id | urlencode }}&fecha={{ mejor.fecha.isoformat() }}">Simular con esta fecha</a>
+          <span class="kpi-etiqueta">Fecha sugerida</span>
+          <span class="kpi-valor bien">{{ mejor.fecha | fecha_con_dia }}</span>
+          <span class="kpi-nota">{{ '%g' % mejor.pct_colision }} % con colisión · carga de la semana {{ '%g' % mejor.carga_semana }}</span>
+          <a class="boton boton-secundario" style="margin-top: 10px" href="/simulador?fuente={{ fuente }}&evaluacion={{ seleccionada.id | urlencode }}&fecha={{ mejor.fecha.isoformat() }}">Simular con esta fecha</a>
         {% else %}
-          <span class="metrica-valor">Sin cambios</span>
-          <span class="metrica-titulo">Es la mejor fecha entre los días hábiles a ±7 días.</span>
+          <span class="kpi-etiqueta">Fecha sugerida</span>
+          <span class="kpi-valor">Sin cambios</span>
+          <span class="kpi-nota">Es la mejor fecha entre los días hábiles a ±7 días.</span>
         {% endif %}
       </div>
     </section>
 
-    {% if propuesta.colisiones %}
+    <div class="apilado">
       <section class="panel">
-        <h2>Colisiones en las que entraría</h2>
-        <ul class="colisiones">
-          {% for c in propuesta.colisiones %}
-            <li><strong>{{ c.inicio.strftime('%d/%m') }} al {{ c.fin.strftime('%d/%m/%Y') }}</strong> · {{ c.cursos | join(', ') }}</li>
-          {% endfor %}
-        </ul>
+        <div class="panel-cabecera">
+          <h2>El semestre con esta fecha</h2>
+          {{ leyenda() }}
+        </div>
+        {{ heatmap(calendario.semanas, seleccionada=calendario.semanas[semana_simulada - 1], pico=semana_simulada) }}
+        <p class="panel-pie detalle">{{ seleccionada.nombre }} cae en la semana {{ semana_simulada }}, resaltada en negro.</p>
       </section>
-    {% endif %}
+      <section class="panel">
+        <div class="panel-cabecera"><h2>Colisiones en las que entraría</h2></div>
+        {% if propuesta.colisiones %}
+          <ul class="colisiones">
+            {% for c in propuesta.colisiones %}
+              <li>
+                <span class="colision-fecha">{{ c.inicio.strftime('%d/%m') }} al {{ c.fin.strftime('%d/%m/%Y') }}
+                  <span class="num">{{ c.evaluaciones | length }} evaluaciones</span></span>
+                <span class="colision-cursos">{{ c.cursos | map('nombre_curso') | join(' · ') }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="detalle">Ninguna: con esta fecha, la evaluación no queda en una ventana de 72 h con 3 o más evaluaciones fuertes.</p>
+        {% endif %}
+      </section>
+    </div>
   {% else %}
     <section class="panel">
       <p class="detalle">Elige una evaluación y una fecha para ver el riesgo de colisión y la mejor fecha cercana.</p>
