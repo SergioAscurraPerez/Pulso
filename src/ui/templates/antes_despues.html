@@ -13,7 +13,13 @@
     {% endif %}
   </div>
   {% if not error %}
-    <div class="cabecera-acciones"><a class="boton boton-secundario" href="#propuesta">Ver la propuesta</a></div>
+    <div class="cabecera-acciones">
+      {% if aprobada %}
+        <span class="pastilla pastilla-ok">Propuesta aprobada</span>
+      {% else %}
+        <a class="boton boton-secundario" href="#movimientos">Revisar cambios</a>
+      {% endif %}
+    </div>
   {% endif %}
 </section>
 
@@ -39,7 +45,7 @@
     <div class="kpi">
       <span class="kpi-etiqueta">Evaluaciones movidas</span>
       <span class="kpi-valor">{{ resultado.movimientos | length }}<span class="unidad">de {{ cohorte.evaluaciones | length }}</span></span>
-      <span class="kpi-nota">las bloqueadas por el docente no se mueven</span>
+      <span class="kpi-nota">{% if rechazadas %}las bloqueadas y las {{ rechazadas | length }} rechazadas no se mueven{% else %}las bloqueadas por el docente no se mueven{% endif %}</span>
     </div>
     <div class="kpi">
       <span class="kpi-etiqueta">Optimizador</span>
@@ -56,16 +62,16 @@
     {{ heatmap(despues.semanas, previas=antes.semanas, pico=pico_despues[0]) }}
   </section>
 
-  <section class="panel">
+  <section class="panel" id="movimientos">
     <div class="panel-cabecera">
       <h2>Evaluaciones movidas ({{ resultado.movimientos | length }})</h2>
-      <p class="detalle">fecha original → fecha nueva</p>
+      <p class="detalle">{% if aprobada %}decisiones cerradas: la propuesta está aprobada{% else %}revisa cada cambio: si uno no es viable, recházalo y PULSO recalcula el resto{% endif %}</p>
     </div>
     {% if resultado.movimientos %}
       <div class="tabla-marco">
         <table class="tabla tabla-movil">
           <thead>
-            <tr><th>Curso</th><th>Evaluación</th><th>Fecha original</th><th>Fecha nueva</th><th class="num">Días</th></tr>
+            <tr><th>Curso</th><th>Evaluación</th><th>Fecha original</th><th>Fecha nueva</th><th class="num">Días</th>{% if not aprobada %}<th class="num">Decisión</th>{% endif %}</tr>
           </thead>
           <tbody>
             {% for m in resultado.movimientos %}
@@ -75,6 +81,11 @@
                 <td class="apagado t-oculto">{{ m.fecha_original | fecha_con_dia }}</td>
                 <td class="t-secundario">{{ m.fecha_nueva | fecha_con_dia }}</td>
                 <td class="num">{{ '%+d' % m.dias }}</td>
+                {% if not aprobada %}
+                  <td class="num t-extra"><a class="boton boton-secundario boton-chico"
+                     href="{{ url_revision('/antes-despues', fuente, rechazadas, agregar=m.id, ancla='#movimientos') }}"
+                     aria-label="Rechazar: mantener {{ m.nombre }} de {{ m.curso | nombre_curso }} en su fecha original">Rechazar</a></td>
+                {% endif %}
               </tr>
             {% endfor %}
           </tbody>
@@ -83,12 +94,30 @@
     {% else %}
       <p>No hace falta mover ninguna evaluación: el calendario actual ya es el óptimo.</p>
     {% endif %}
+
+    {% if evaluaciones_rechazadas %}
+      <div class="rechazadas">
+        <h3>Mantenidas en su fecha por la coordinación ({{ evaluaciones_rechazadas | length }})</h3>
+        <ul class="colisiones">
+          {% for e in evaluaciones_rechazadas %}
+            <li>
+              <span class="colision-fecha">{{ e.nombre }} · {{ e.curso | nombre_curso }}
+                {% if not aprobada %}<a class="enlace" href="{{ url_revision('/antes-despues', fuente, rechazadas, quitar=e.id, ancla='#movimientos') }}">Restaurar</a>{% endif %}</span>
+              <span class="colision-cursos">se queda el {{ e.fecha | fecha_con_dia }}; el optimizador recalculó el resto respetando esta fecha</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
   </section>
 
   <section class="panel" id="propuesta">
-    <div class="panel-cabecera"><h2>Propuesta para el coordinador</h2></div>
-    {# Se pide aparte para que la vista no espere al LLM. #}
-    <div hx-get="/antes-despues/propuesta?fuente={{ fuente }}" hx-trigger="load" hx-swap="outerHTML">
+    <div class="panel-cabecera">
+      <h2>Propuesta para el coordinador</h2>
+      {% if aprobada %}<span class="pastilla pastilla-ok">Aprobada por la coordinación</span>{% else %}<span class="pastilla">Borrador · pendiente de aprobación</span>{% endif %}
+    </div>
+    {# Se pide aparte para que la vista no espere al LLM. Lleva las decisiones de la coordinación. #}
+    <div hx-get="{{ url_revision('/antes-despues/propuesta', fuente, rechazadas, aprobada=aprobada) }}" hx-trigger="load" hx-swap="outerHTML">
       <p class="progreso" role="status">Redactando la propuesta…</p>
     </div>
   </section>

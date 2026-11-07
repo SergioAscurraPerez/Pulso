@@ -1,9 +1,20 @@
-{# Fragmento que /antes-despues carga con HTMX (sin layout). #}
+{# Fragmento que /antes-despues carga con HTMX (sin layout).
+   Human in the loop: es un borrador hasta que la coordinación lo aprueba; aprobado, se descarga para enviarlo. #}
 <div class="propuesta">
   {% if error %}
     <p>No se pudo generar la propuesta: {{ error }}</p>
   {% else %}
     {{ propuesta.texto | markdown_simple }}
-    <p class="detalle">{% if propuesta.generada_por == "llm" %}Redactada por el LLM ({{ propuesta.modelo }}) con los datos del optimizador.{% else %}Generada con la plantilla (LLM no disponible), con los datos del optimizador.{% endif %}</p>
+    <p class="detalle">{% if propuesta.generada_por == "llm" %}Redactada por el LLM ({{ propuesta.modelo }}) con los datos del optimizador.{% else %}Generada con la plantilla (LLM no disponible), con los datos del optimizador.{% endif %}
+      {% if rechazadas %}Incluye las decisiones de la coordinación: {{ rechazadas | length }} {{ "evaluación se mantiene" if rechazadas | length == 1 else "evaluaciones se mantienen" }} en su fecha.{% endif %}</p>
+    <div class="propuesta-acciones">
+      {% if aprobada %}
+        <a class="boton" href="{{ url_revision('/antes-despues/propuesta.md', fuente, rechazadas) }}" download>Descargar propuesta</a>
+        <a class="enlace" href="{{ url_revision('/antes-despues', fuente, rechazadas, ancla='#movimientos') }}">Volver a revisar</a>
+      {% else %}
+        <a class="boton" href="{{ url_revision('/antes-despues', fuente, rechazadas, aprobada=True, ancla='#propuesta') }}">Aprobar propuesta</a>
+        <span class="detalle">Nada se envía a los docentes hasta que la coordinación lo apruebe.</span>
+      {% endif %}
+    </div>
   {% endif %}
 </div>

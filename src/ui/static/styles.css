@@ -301,6 +301,14 @@ a.celda:active { transform: scale(0.97); }
 .propuesta p, .propuesta li { line-height: 1.6; }
 .propuesta ul { padding-left: 20px; }
 
+/* ---------- Human in the loop: revisión y aprobación ---------- */
+
+.boton-chico { height: 28px; padding: 0 10px; font-size: 13px; }
+.rechazadas { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.rechazadas h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
+.rechazadas .colision-fecha { font-weight: 500; }
+.propuesta-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--rule); }
+
 /* ---------- Simulación punta a punta ---------- */
 
 .entradas { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 0; padding: 0; }
