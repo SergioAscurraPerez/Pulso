@@ -8,10 +8,12 @@ from fastapi.testclient import TestClient
 import src.app as app_modulo
 from src.extraction import llm_parser, proposal
 from src.extraction.llm import ConfigLLM
-from src.models import cargar_cohorte
+from src.extraction.llm_parser import ResultadoExtraccion
+from src.models import Evaluacion, cargar_cohorte
 
 cliente = TestClient(app_modulo.app)
 SILABOS = sorted(Path("data/silabos/ciclo-07").glob("*.pdf"))  # sus extracciones están en data/cache/extraccion
+REAL = cargar_cohorte("data/cohorte.json")
 
 
 @pytest.fixture
@@ -30,7 +32,7 @@ def tmp_app(tmp_path, monkeypatch):
     return tmp_path
 
 
-def _subir(archivos, ciclo="2026-I", fecha_inicio="2026-03-30"):
+def _subir(archivos, ciclo=REAL.ciclo, fecha_inicio=REAL.fecha_inicio.isoformat()):
     return cliente.post(
         "/cargar",
         files=[("archivos", (nombre, datos, "application/pdf")) for nombre, datos in archivos],
@@ -46,8 +48,8 @@ def test_la_cohorte_real_reemplaza_al_mock_por_defecto():
 def test_formulario_de_carga_trae_ciclo_e_inicio_de_la_cohorte_real():
     respuesta = cliente.get("/cargar")
     assert respuesta.status_code == 200
-    assert 'value="2026-I"' in respuesta.text
-    assert 'value="2026-03-30"' in respuesta.text
+    assert f'value="{REAL.ciclo}"' in respuesta.text
+    assert f'value="{REAL.fecha_inicio.isoformat()}"' in respuesta.text
 
 
 def test_subir_silabos_en_cache_arma_la_cohorte_sin_llamar_al_llm(tmp_app, monkeypatch):
@@ -61,7 +63,7 @@ def test_subir_silabos_en_cache_arma_la_cohorte_sin_llamar_al_llm(tmp_app, monke
 
     # Mismo pipeline y mismos parámetros que data/cohorte.json → mismas evaluaciones.
     subida = cargar_cohorte(tmp_app / "cohorte-subida.json")
-    assert {e.id for e in subida.evaluaciones} == {e.id for e in cargar_cohorte("data/cohorte.json").evaluaciones}
+    assert subida.model_dump(exclude={"nombre"}) == REAL.model_dump(exclude={"nombre"})
     for ruta in ["/carga", "/antes-despues", "/simulador"]:
         assert cliente.get(ruta, params={"fuente": "subida"}).status_code == 200
 
@@ -73,17 +75,47 @@ def test_el_mismo_pdf_dos_veces_cuenta_una(tmp_app):
     assert respuesta.text.count("(caché)") == 1
 
 
+def test_extension_en_mayusculas_tambien_se_procesa(tmp_app):
+    respuesta = _subir([("SILABO.PDF", SILABOS[0].read_bytes())])
+    assert respuesta.status_code == 200
+    assert "(caché)" in respuesta.text
+
+
 def test_pdf_nuevo_sin_llm_da_error_claro(tmp_app, sin_llm):
-    respuesta = _subir([("nuevo.pdf", b"%PDF-1.4 sin cache")])
+    respuesta = _subir([("nuevo.pdf", b"%PDF-1.4 a"), ("otro.pdf", b"%PDF-1.4 b")])
     assert respuesta.status_code == 422
-    assert "no está en la caché y el LLM no está configurado" in respuesta.text
+    assert respuesta.text.count("no está en la caché y el LLM no está configurado") == 2
     assert not (tmp_app / "cohorte-subida.json").exists()
+
+
+def test_pdf_nuevo_se_extrae_y_queda_en_cache(tmp_app, monkeypatch):
+    evaluaciones = [
+        Evaluacion(curso="Curso Nuevo", nombre="Examen parcial", tipo="examen_parcial", semana=8, peso=50),
+        Evaluacion(curso="Curso Nuevo", nombre="Examen final", tipo="examen_final", semana=16, peso=50),
+    ]
+    llamadas = []
+    monkeypatch.setattr(
+        app_modulo, "_extraer_en_linea", lambda pdf: llamadas.append(pdf) or ResultadoExtraccion("Curso Nuevo", evaluaciones, 1, [])
+    )
+    pdf = [("nuevo.pdf", b"%PDF-1.4 nuevo")]
+    assert "(LLM)" in _subir(pdf).text
+    assert "(caché)" in _subir(pdf).text  # la segunda vez no se vuelve a extraer
+    assert len(llamadas) == 1
+    assert len(list((tmp_app / "cache-extraccion").glob("*.json"))) == 1
+    assert len(cargar_cohorte(tmp_app / "cohorte-subida.json").evaluaciones) == 2
+
+
+def test_sin_tiempo_no_empieza_otra_extraccion(tmp_app, monkeypatch):
+    monkeypatch.setattr(app_modulo, "PRESUPUESTO_LLM_S", -1)
+    monkeypatch.setattr(app_modulo, "_extraer_en_linea", lambda pdf: pytest.fail("no debía extraer"))
+    respuesta = _subir([("nuevo.pdf", b"%PDF-1.4 nuevo"), (SILABOS[0].name, SILABOS[0].read_bytes())])
+    assert respuesta.status_code == 200  # el sílabo en caché alcanza para armar la cohorte
+    assert "no alcanzó el tiempo de esta subida" in respuesta.text
 
 
 @pytest.mark.parametrize(
     ("archivos", "datos", "mensaje"),
     [
-        ([("a.pdf", b"%PDF-1.4 a"), ("b.pdf", b"%PDF-1.4 b")], {}, "Solo se puede extraer 1 sílabo nuevo"),
         ([("notas.pdf", b"no soy un pdf")], {}, "No son PDF: notas.pdf"),
         ([("a.pdf", b"%PDF-1.4 a")], {"fecha_inicio": "2026-03-31"}, "debe ser el lunes"),
         ([("a.pdf", b"%PDF-1.4 a")], {"ciclo": "  "}, "Indica el ciclo"),
