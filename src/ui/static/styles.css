@@ -141,7 +141,7 @@ h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
   vertical-align: middle;
 }
 
-/* Antes / después (PUL-16). */
+/* Tarjetas de métricas (antes/después y simulador). */
 .metricas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
@@ -167,6 +167,30 @@ h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
 .comparacion .heatmap { margin-bottom: 0; }
 
 .aviso { border-color: var(--critico); }
+
+/* Simulador docente (PUL-18). */
+.formulario {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.campo { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: var(--texto-suave); }
+.campo select, .campo input, .formulario button {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font: inherit;
+  color: var(--texto);
+  background: var(--superficie);
+}
+.campo select { max-width: 32rem; }
+.formulario button { background: var(--acento); border-color: var(--acento); color: #fff; font-weight: 600; cursor: pointer; }
+.metrica.riesgo { border-color: var(--critico); }
+.metrica.riesgo .metrica-valor { color: var(--critico); font-size: 2rem; }
+.metrica a { margin-top: 0.4rem; font-size: 0.85rem; color: var(--acento); }
 
 @media (max-width: 700px) {
   .comparacion { grid-template-columns: 1fr; }
