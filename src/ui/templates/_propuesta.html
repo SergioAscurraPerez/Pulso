@@ -2,7 +2,7 @@
    Human in the loop: es un borrador hasta que la coordinación lo aprueba; aprobado, se descarga para enviarlo. #}
 <div class="propuesta">
   {% if error %}
-    <p>No se pudo generar la propuesta: {{ error }}</p>
+    <p>No se pudo generar la propuesta. {{ error }}</p>
   {% else %}
     {{ propuesta.texto | markdown_simple }}
     <p class="detalle">Cifras, métricas y beneficio calculados por PULSO con el optimizador. {% if propuesta.generada_por == "llm" %}Resumen redactado por el LLM ({{ propuesta.modelo }}).{% else %}Resumen generado con la plantilla (LLM no disponible).{% endif %}
