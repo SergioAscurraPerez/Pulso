@@ -22,6 +22,23 @@ y propone una reprogramación óptima con un solver CP-SAT. Stack: Python, Pydan
 - No lo modifiques salvo que el usuario lo pida (normalmente solo se actualiza la columna `Estado`).
 - Hojas: `Product Backlog`, `Resumen`, `Plan por hora`, `Convenciones Git`, `Hoy (pre-evento)`.
 
+## Estado de los PRs y de `main` (comprobar SIEMPRE antes de avanzar)
+
+Antes de empezar una tarea, crear una rama o abrir un PR, comprueba el estado real de los PRs y de `main`:
+
+```bash
+git fetch --all --prune
+gh pr list --state all --json number,title,state,baseRefName,headRefName,mergedAt
+git log --oneline origin/main..origin/<rama-de-la-dependencia>   # debe salir vacío
+```
+
+1. Un PR cuenta como integrado **solo si está `MERGED` con base `main`**. Si se mergeó contra otra rama (PR apilado), su código **no está en `main`**.
+2. Para cada dependencia, verifica que su rama no tenga commits fuera de `main` (el `git log origin/main..origin/<rama>` debe salir vacío).
+3. Si `main` no está al día con un PR que figura como mergeado: **no avances**. Avisa al usuario y propón un PR de sincronización hacia `main`.
+4. Si hay PRs abiertos de los que depende la tarea, no empieces: avisa cuáles faltan mergear.
+5. Toda rama nueva sale de `main` actualizado: `git checkout main && git pull origin main && git checkout -b <rama>`.
+6. Evita los PRs apilados (base distinta de `main`). Si no queda otra, antes de mergear el siguiente cambia su base a `main` (`gh pr edit <n> --base main`) y vuelve a comprobar el diff.
+
 ## Dependencias entre tareas (regla obligatoria)
 
 **No empieces una tarea si alguna de sus dependencias (`Depende de`) no está en estado `Hecho`.**
@@ -95,7 +112,8 @@ Cada tarea toca solo la carpeta de su módulo. Si necesitas cambiar `src/models.
 2. Antes de abrirla: `git pull origin main` en la rama, resolver conflictos y verificar que la app/código corre.
 3. Título: `PUL-XX tipo(scope): descripción` — ej. `PUL-11 feat(optimizer): modelo CP-SAT con fechas bloqueadas`.
 4. Cuerpo: usar la plantilla de abajo (también en `.github/pull_request_template.md`). Siempre completa las dependencias y el DoD.
-5. No abras la PR si alguna dependencia no está `Hecho` y mergeada (ver regla de dependencias).
+5. No abras la PR si alguna dependencia no está `Hecho` y mergeada en `main` (ver "Estado de los PRs y de `main`").
+   La base del PR siempre es `main`.
 6. Merge a `main` solo en checkpoints (11:00, 12:40, 15:30) o con aviso al equipo. Quien mergea avisa en el chat.
 7. Nunca incluir el Excel, `.env`, claves ni archivos generados grandes.
 8. Usa `gh pr create` para crearla; no la mergees sin que el usuario lo pida.
