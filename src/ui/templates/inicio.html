@@ -1,40 +1,108 @@
 {% extends "base.html" %}
+{% from "_heatmap.html" import heatmap, leyenda %}
 {% block titulo %}Cohorte{% endblock %}
 {% block contenido %}
+{% set colisiones = calendario.colisiones %}
+{% set peor = (colisiones | sort(attribute='carga', reverse=True) | first) if colisiones else None %}
+{% set en_colision = evaluaciones | selectattr('id', 'in', calendario.ids_en_colision) | list %}
+
 <section class="cabecera">
   <div>
     <h1>{{ cohorte.nombre }}</h1>
-    <p class="detalle">Ciclo {{ cohorte.ciclo }} · inicia el {{ cohorte.fecha_inicio.strftime('%d/%m/%Y') }}
-      · {{ cohorte.cursos | length }} cursos · {{ evaluaciones | length }} evaluaciones
-      {% if cohorte.total_estudiantes %} · {{ cohorte.total_estudiantes }} estudiantes{% endif %}</p>
+    {% if peor %}
+      <p class="hallazgo"><strong>{{ colisiones | length }} {{ "colisión" if colisiones | length == 1 else "colisiones" }} en el ciclo.</strong>
+        La más pesada, del {{ peor.inicio.strftime('%d/%m') }} al {{ peor.fin.strftime('%d/%m') }}:
+        {{ peor.evaluaciones | length }} evaluaciones fuertes de {{ peor.cursos | length }} cursos.</p>
+    {% else %}
+      <p class="hallazgo">Ninguna semana tiene 3 o más evaluaciones fuertes en 72 horas.</p>
+    {% endif %}
   </div>
-  <form class="selector" method="get" action="/">
-    <label for="fuente">Datos</label>
-    <select id="fuente" name="fuente" onchange="this.form.submit()">
-      {% for clave, etiqueta in fuentes.items() %}
-        <option value="{{ clave }}" {% if clave == fuente %}selected{% endif %}>{{ etiqueta }}</option>
-      {% endfor %}
-    </select>
-    <noscript><button type="submit">Cargar</button></noscript>
-  </form>
+  <div class="cabecera-acciones">
+    <a class="boton" href="/antes-despues?fuente={{ fuente }}">Optimizar fechas</a>
+  </div>
 </section>
 
-<table class="tabla">
-  <thead>
-    <tr><th>Semana</th><th>Fecha</th><th>Curso</th><th>Evaluación</th><th>Tipo</th><th class="num">Peso</th><th>Bloqueada</th></tr>
-  </thead>
-  <tbody>
-    {% for e in evaluaciones %}
-      <tr>
-        <td>{{ e.semana or "—" }}</td>
-        <td>{{ e.fecha.strftime('%d/%m/%Y') if e.fecha else "—" }}</td>
-        <td>{{ e.curso }}</td>
-        <td>{{ e.nombre }}</td>
-        <td>{{ e.tipo | etiqueta_tipo }}</td>
-        <td class="num">{{ '%g' % e.peso }} %</td>
-        <td>{{ "Sí" if e.bloqueada else "No" }}</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<section class="kpis" style="--n: 4" aria-label="Resumen de la cohorte">
+  <div class="kpi">
+    <span class="kpi-etiqueta">Evaluaciones</span>
+    <span class="kpi-valor">{{ evaluaciones | length }}</span>
+    <span class="kpi-nota">{{ cohorte.cursos | length }} cursos · ciclo {{ cohorte.ciclo }}{% if cohorte.total_estudiantes %} · {{ cohorte.total_estudiantes }} estudiantes{% endif %}</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-etiqueta">Semana más cargada</span>
+    <span class="kpi-valor">{% if calendario.semana_pico %}S{{ calendario.semana_pico }}{% else %}—{% endif %}</span>
+    <span class="kpi-nota">{% if calendario.semana_pico %}carga {{ '%g' % calendario.pico }} · índice Σ peso × tipo{% else %}sin evaluaciones con peso{% endif %}</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-etiqueta">Colisiones</span>
+    <span class="kpi-valor{% if colisiones %} riesgo{% endif %}">{{ colisiones | length }}</span>
+    <span class="kpi-nota">ventanas de 72 h con 3 o más fuertes</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-etiqueta">Evaluaciones en colisión</span>
+    <span class="kpi-valor">{{ en_colision | length }}<span class="unidad">de {{ evaluaciones | length }}</span></span>
+    <span class="kpi-nota">inicio del ciclo: {{ cohorte.fecha_inicio.strftime('%d/%m/%Y') }}</span>
+  </div>
+</section>
+
+<div class="rejilla rejilla-resumen">
+  <section class="panel">
+    <div class="panel-cabecera">
+      <h2>La carga del semestre</h2>
+      {{ leyenda() }}
+    </div>
+    {{ heatmap(calendario.semanas, fuente=fuente, pico=calendario.semana_pico) }}
+    <p class="panel-pie detalle">Cada columna es una semana. Haz clic en una para ver sus evaluaciones.</p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-cabecera"><h2>Colisiones</h2></div>
+    {% if colisiones %}
+      <ul class="colisiones">
+        {% for c in colisiones %}
+          <li>
+            <span class="colision-fecha">{{ c.inicio.strftime('%d/%m') }} al {{ c.fin.strftime('%d/%m') }}
+              <span class="num">{{ c.evaluaciones | length }} evaluaciones</span></span>
+            <span class="colision-cursos">{{ c.cursos | map('nombre_curso') | join(' · ') }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="detalle">No hay colisiones en esta cohorte.</p>
+    {% endif %}
+    <p class="panel-pie"><a class="enlace" href="/carga?fuente={{ fuente }}">Ver la carga semana a semana</a></p>
+  </section>
+</div>
+
+<section class="panel" style="margin-top: var(--gap)">
+  <div class="panel-cabecera">
+    <h2>Evaluaciones del ciclo</h2>
+    <p class="detalle">{{ evaluaciones | length }} evaluaciones · ordenadas por fecha</p>
+  </div>
+  <div class="tabla-marco">
+    <table class="tabla tabla-movil">
+      <thead>
+        <tr><th class="num">Semana</th><th>Fecha</th><th>Curso</th><th>Evaluación</th><th>Tipo</th><th class="num">Peso</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        {% for e in evaluaciones %}
+          {% set choca = e.id in calendario.ids_en_colision %}
+          <tr{% if choca %} class="en-colision"{% endif %}>
+            <td class="num t-oculto">{{ e.semana or "—" }}</td>
+            <td class="t-secundario">{{ e.fecha.strftime('%d/%m/%Y') if e.fecha else "—" }}</td>
+            <td class="t-secundario">{{ e.curso | nombre_curso }}</td>
+            <td class="t-principal">{{ e.nombre }}</td>
+            <td class="apagado t-oculto">{{ e.tipo | etiqueta_tipo }}</td>
+            <td class="num">{{ '%g' % e.peso }} %</td>
+            <td class="t-extra">
+              {% if choca %}<span class="pastilla pastilla-critica">En colisión</span>{% endif %}
+              {% if e.bloqueada %}<span class="pastilla">Bloqueada</span>{% endif %}
+              {% if not choca and not e.bloqueada %}<span class="apagado">—</span>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 {% endblock %}

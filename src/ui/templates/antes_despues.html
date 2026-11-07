@@ -5,9 +5,16 @@
 <section class="cabecera">
   <div>
     <h1>Antes / después</h1>
-    <p class="detalle">{{ cohorte.nombre }} · reprogramación propuesta por el optimizador CP-SAT</p>
+    {% if error %}
+      <p class="hallazgo">{{ cohorte.nombre }}</p>
+    {% else %}
+      <p class="hallazgo"><strong>Moviendo {{ resultado.movimientos | length }} {{ "evaluación" if resultado.movimientos | length == 1 else "evaluaciones" }}, las colisiones bajan de {{ resultado.colisiones_antes }} a {{ resultado.colisiones_despues }}.</strong>
+        Solo cambian fechas: ningún examen cambia de tipo ni de peso.</p>
+    {% endif %}
   </div>
-  {% if not error %}{{ leyenda() }}{% endif %}
+  {% if not error %}
+    <div class="cabecera-acciones"><a class="boton boton-secundario" href="#propuesta">Ver la propuesta</a></div>
+  {% endif %}
 </section>
 
 {% if error %}
@@ -18,66 +25,71 @@
 {% else %}
   {% set pico_antes = resultado.pico_antes %}
   {% set pico_despues = resultado.pico_despues %}
-  <section class="metricas">
-    <div class="metrica destacada">
-      <span class="metrica-valor">{{ '%g' % resultado.reduccion_pico_pct }} %</span>
-      <span class="metrica-titulo">Reducción del pico de carga</span>
+  <section class="kpis" style="--n: 4" aria-label="Resultado de la reprogramación">
+    <div class="kpi">
+      <span class="kpi-etiqueta">Colisiones</span>
+      <span class="kpi-valor{{ ' bien' if resultado.colisiones_despues < resultado.colisiones_antes else '' }}">{{ resultado.colisiones_antes }} → {{ resultado.colisiones_despues }}</span>
+      <span class="kpi-nota">ventanas de 72 h con 3 o más evaluaciones fuertes</span>
     </div>
-    <div class="metrica">
-      <span class="metrica-valor">{{ '%g' % pico_antes[1] }} → {{ '%g' % pico_despues[1] }}</span>
-      <span class="metrica-titulo">Carga pico (semana {{ pico_antes[0] }} → semana {{ pico_despues[0] }})</span>
+    <div class="kpi">
+      <span class="kpi-etiqueta">Reducción del pico de carga</span>
+      <span class="kpi-valor">{{ '%g' % resultado.reduccion_pico_pct }} %</span>
+      <span class="kpi-nota">{{ '%g' % pico_antes[1] }} (S{{ pico_antes[0] }}) → {{ '%g' % pico_despues[1] }} (S{{ pico_despues[0] }})</span>
     </div>
-    <div class="metrica">
-      <span class="metrica-valor">{{ resultado.colisiones_antes }} → {{ resultado.colisiones_despues }}</span>
-      <span class="metrica-titulo">Colisiones</span>
+    <div class="kpi">
+      <span class="kpi-etiqueta">Evaluaciones movidas</span>
+      <span class="kpi-valor">{{ resultado.movimientos | length }}<span class="unidad">de {{ cohorte.evaluaciones | length }}</span></span>
+      <span class="kpi-nota">las bloqueadas por el docente no se mueven</span>
     </div>
-    <div class="metrica">
-      <span class="metrica-valor">{{ resultado.movimientos | length }}</span>
-      <span class="metrica-titulo">Evaluaciones movidas</span>
-    </div>
-  </section>
-
-  <section class="comparacion">
-    <div class="panel">
-      <h2>Antes</h2>
-      {{ heatmap(antes.semanas) }}
-    </div>
-    <div class="panel">
-      <h2>Después</h2>
-      {{ heatmap(despues.semanas) }}
+    <div class="kpi">
+      <span class="kpi-etiqueta">Optimizador</span>
+      <span class="kpi-valor">{{ '%.2f' % resultado.tiempo_s }}<span class="unidad">s</span></span>
+      <span class="kpi-nota">CP-SAT · solución {{ "óptima" if resultado.estado == "OPTIMAL" else resultado.estado | lower }}</span>
     </div>
   </section>
 
   <section class="panel">
-    <h2>Evaluaciones movidas ({{ resultado.movimientos | length }})</h2>
-    <p class="detalle">Las evaluaciones bloqueadas por el docente no se mueven. Solver: {{ resultado.estado }} en {{ '%g' % resultado.tiempo_s }} s.</p>
+    <div class="panel-cabecera">
+      <h2>La carga del semestre, antes y después</h2>
+      {{ leyenda(comparar=True) }}
+    </div>
+    {{ heatmap(despues.semanas, previas=antes.semanas, pico=pico_despues[0]) }}
+  </section>
+
+  <section class="panel">
+    <div class="panel-cabecera">
+      <h2>Evaluaciones movidas ({{ resultado.movimientos | length }})</h2>
+      <p class="detalle">fecha original → fecha nueva</p>
+    </div>
     {% if resultado.movimientos %}
-      <table class="tabla">
-        <thead>
-          <tr><th>Curso</th><th>Evaluación</th><th>Fecha original</th><th>Fecha nueva</th><th class="num">Días</th></tr>
-        </thead>
-        <tbody>
-          {% for m in resultado.movimientos %}
-            <tr>
-              <td>{{ m.curso }}</td>
-              <td>{{ m.nombre }}</td>
-              <td>{{ m.fecha_original.strftime('%d/%m/%Y') }}</td>
-              <td>{{ m.fecha_nueva.strftime('%d/%m/%Y') }}</td>
-              <td class="num">{{ '%+d' % m.dias }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="tabla-marco">
+        <table class="tabla tabla-movil">
+          <thead>
+            <tr><th>Curso</th><th>Evaluación</th><th>Fecha original</th><th>Fecha nueva</th><th class="num">Días</th></tr>
+          </thead>
+          <tbody>
+            {% for m in resultado.movimientos %}
+              <tr>
+                <td class="t-secundario">{{ m.curso | nombre_curso }}</td>
+                <td class="t-principal">{{ m.nombre }}</td>
+                <td class="apagado t-oculto">{{ m.fecha_original | fecha_con_dia }}</td>
+                <td class="t-secundario">{{ m.fecha_nueva | fecha_con_dia }}</td>
+                <td class="num">{{ '%+d' % m.dias }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     {% else %}
       <p>No hace falta mover ninguna evaluación: el calendario actual ya es el óptimo.</p>
     {% endif %}
   </section>
 
-  <section class="panel">
-    <h2>Propuesta para el coordinador</h2>
+  <section class="panel" id="propuesta">
+    <div class="panel-cabecera"><h2>Propuesta para el coordinador</h2></div>
     {# Se pide aparte para que la vista no espere al LLM. #}
     <div hx-get="/antes-despues/propuesta?fuente={{ fuente }}" hx-trigger="load" hx-swap="outerHTML">
-      <p class="detalle">Redactando la propuesta…</p>
+      <p class="progreso" role="status">Redactando la propuesta…</p>
     </div>
   </section>
 {% endif %}

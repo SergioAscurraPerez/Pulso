@@ -1,0 +1,2 @@
+Geist (variable, subconjunto latino) — © Vercel, licencia SIL Open Font License 1.1 (OFL-1.1).
+Fuente: @fontsource-variable/geist 5.3.0. Se sirve localmente para que la app funcione sin internet.

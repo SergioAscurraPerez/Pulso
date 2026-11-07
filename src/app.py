@@ -84,6 +84,39 @@ templates.env.filters["etiqueta_tipo"] = lambda tipo: ETIQUETAS_TIPO[tipo]
 DIAS_SEMANA = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
 templates.env.filters["fecha_con_dia"] = lambda f: f"{DIAS_SEMANA[f.weekday()]} {f.strftime('%d/%m/%Y')}"
 
+_ROMANOS = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"}
+_MENORES = {"de", "del", "la", "las", "el", "los", "y", "e", "en", "para", "por", "a", "o", "u", "con", "si"}
+
+
+def nombre_curso(nombre: str) -> str:
+    """Los sílabos traen el curso en MAYÚSCULAS: se muestra en formato título ("Ingenieria de Software II")."""
+    if nombre != nombre.upper():
+        return nombre
+    palabras = []
+    for i, palabra in enumerate(nombre.split()):
+        if palabra in _ROMANOS:
+            palabras.append(palabra)
+        elif i and palabra.lower() in _MENORES:
+            palabras.append(palabra.lower())
+        else:
+            palabras.append(palabra.capitalize())
+    return " ".join(palabras)
+
+
+def escala_ticks(maximo: float, marcas: int = 4) -> list[float]:
+    """Marcas redondas del eje Y (0, 100, 200, 300) que cubren `maximo`."""
+    if maximo <= 0:
+        return [0]
+    crudo = maximo / marcas
+    magnitud = 10 ** len(str(int(crudo))) / 10 if crudo >= 1 else 1
+    paso = next(m * magnitud for m in (1, 2, 2.5, 5, 10) if m * magnitud >= crudo)
+    tope = paso * -(-maximo // paso)
+    return [round(paso * i, 2) for i in range(int(round(tope / paso)) + 1)]
+
+
+templates.env.filters["nombre_curso"] = nombre_curso
+templates.env.globals["escala_ticks"] = escala_ticks
+
 
 def markdown_simple(texto: str) -> Markup:
     """Markdown mínimo (títulos #, viñetas -, **negrita**) para la propuesta del LLM. Todo se escapa antes."""
@@ -194,7 +227,8 @@ def ordenar_por_fecha(
 def inicio(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLResponse:
     cohorte = obtener_cohorte(fuente)
     evaluaciones = ordenar_por_fecha(cohorte, cohorte.evaluaciones)
-    return renderizar(request, "inicio.html", fuente, cohorte=cohorte, evaluaciones=evaluaciones)
+    calendario = construir_calendario(cohorte)  # la cinta del semestre y las colisiones: la pregunta de la pantalla
+    return renderizar(request, "inicio.html", fuente, cohorte=cohorte, evaluaciones=evaluaciones, calendario=calendario)
 
 
 @dataclass(frozen=True)
@@ -324,10 +358,12 @@ def simulador(
         seleccionada = next((e for e in cohorte.evaluaciones if e.id == evaluacion), None)
         if seleccionada is None:
             raise HTTPException(status_code=404, detail=f"Evaluación no encontrada: {evaluacion!r}")
-    resultado = error = None
+    resultado = error = calendario = None
     if seleccionada and fecha:
         if cohorte.fecha_inicio <= fecha <= fin_ciclo:
             resultado = simular(cohorte, seleccionada, fecha)
+            # El semestre con la fecha simulada: dónde cae la evaluación y cómo queda la carga.
+            calendario = construir_calendario(cohorte, {seleccionada.id: fecha})
         else:
             error = (
                 f"La fecha debe estar dentro del ciclo: del {cohorte.fecha_inicio.strftime('%d/%m/%Y')} "
@@ -345,6 +381,8 @@ def simulador(
         fin_ciclo=fin_ciclo,
         resultado=resultado,
         error=error,
+        calendario=calendario,
+        semana_simulada=semana_de(seleccionada, cohorte.fecha_inicio, fecha) if calendario else None,
     )
 
 

@@ -43,7 +43,7 @@ Recorrido de la demo, guion del pitch y preguntas frecuentes: [`docs/guion-pitch
 | Qué | Resultado |
 |---|---|
 | Extracción de Ingeniería de Software II (revisión manual) | **11/11** evaluaciones correctas, con semana y peso |
-| Cohorte real ciclo 7 (6 sílabos, 38 evaluaciones) | colisiones **3 → 1**, pico −13.3 %, **5** evaluaciones movidas. La que queda son los parciales, que la facultad fija en la semana 8 |
+| Cohorte real ciclo 7 (6 sílabos, 38 evaluaciones) | colisiones **3 → 1**, pico −13.3 %, **4** evaluaciones movidas (resultado reproducible). La que queda son los parciales, que la facultad fija en la semana 8 |
 | Cohorte de prueba (mock, 30 evaluaciones) | pico **−41.2 %**, colisiones 3 → 0 |
 | Tiempo del optimizador | ~0.1–0.3 s |
 | Simulación punta a punta desde caché | ~0.13 s, sin llamar a la IA |

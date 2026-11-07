@@ -52,7 +52,7 @@ Antes de empezar, tener la app abierta en la pestaña **Cohorte** con **"Cohorte
 |---|---|---|
 | 1 | **Cohorte** (ya abierta) | "Estos son los seis sílabos reales del ciclo 7. PULSO los leyó y encontró **38 evaluaciones**, cada una con su fecha y su peso en la nota." |
 | 2 | Clic en **Carga semanal** | "Cada columna es una semana del ciclo; mientras más intensa, más carga. Ahí está la semana 8, la de parciales, y la 16, la de finales." |
-| 3 | Clic en **Antes / después** | "Le pedimos a PULSO que reparta mejor. Moviendo **solo 5 evaluaciones**, las colisiones bajan de **3 a 1** y el pico baja un 13 %. Sin cambiar ningún examen de tipo ni de peso." |
+| 3 | Clic en **Antes / después** | "Le pedimos a PULSO que reparta mejor. Moviendo **solo 4 evaluaciones**, las colisiones bajan de **3 a 1** y el pico baja un 13 %. Sin cambiar ningún examen de tipo ni de peso." |
 | 4 | Señalar la colisión que queda | "La que queda son los parciales: esa semana la fija la facultad, y PULSO no la toca. Lo que sí hace es mostrarlo con datos, para que se programe distinto el próximo semestre." |
 | 5 | Bajar hasta **"Propuesta para el coordinador"** (se carga sola al final de Antes / después) | "Y esto es lo que recibe la coordinación: una propuesta redactada, lista para enviar a cada docente, con qué se mueve, a qué día y por qué." |
 | 6 | Clic en **Simulador docente** → en **Evaluación** elegir **"Práctica Calificada 4 (12/06)"** de Inteligencia Artificial → **Fecha** 12/06/2026 → **Simular** | "Ahora pónganse en el lugar de la profesora de Inteligencia Artificial. Quiere tomar su práctica el viernes 12 de junio…" |
@@ -77,7 +77,7 @@ Grabación de pantalla con voz en off. Mismo recorrido que la demo, más rápido
 |---|---|---|
 | 0:00–0:10 | Pestaña Cohorte | "PULSO leyó los seis sílabos reales del ciclo 7 de la USMP: 38 evaluaciones." |
 | 0:10–0:30 | Carga semanal | "Así se ve el semestre del estudiante. En la semana 8 los seis cursos toman parcial; en la 16, los finales." |
-| 0:30–0:55 | Antes / después | "PULSO propone mover solo 5 evaluaciones: las colisiones bajan de 3 a 1, sin cambiar ningún examen de tipo ni de peso." |
+| 0:30–0:55 | Antes / después | "PULSO propone mover solo 4 evaluaciones: las colisiones bajan de 3 a 1, sin cambiar ningún examen de tipo ni de peso." |
 | 0:55–1:15 | Propuesta | "La coordinación recibe una propuesta lista para enviar a los docentes." |
 | 1:15–1:45 | Simulador → Práctica Calificada 4 de IA | "Antes de fijar su práctica el 12 de junio, la docente ve que el 100 % de sus alumnos chocaría. PULSO le sugiere el 5 de junio: 0 %." |
 | 1:45–2:00 | Volver a Carga semanal | "PULSO: la carga académica se planifica desde el primer día." |

@@ -4,20 +4,73 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}PULSO{% endblock %} · PULSO</title>
+  {# Fuente y HTMX servidos por la propia app: la demo funciona sin internet (plan B del pitch). #}
+  <link rel="preload" href="{{ url_for('static', path='fonts/geist-latin-wght-normal.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+  <script src="{{ url_for('static', path='js/htmx.min.js') }}" defer></script>
 </head>
 <body>
-  <header class="barra">
-    <a class="marca" href="/?fuente={{ fuente }}">PULSO</a>
-    <nav class="nav">
-      {% for ruta, titulo in vistas %}
-        <a href="{{ ruta }}?fuente={{ fuente }}" {% if ruta == ruta_actual %}aria-current="page"{% endif %}>{{ titulo }}</a>
+{# Marca: la línea de un pulso que se eleva en la semana crítica, en el tono de los datos. #}
+{% macro marca(enlace=True) %}
+  <{{ "a" if enlace else "span" }} class="marca"{% if enlace %} href="/?fuente={{ fuente }}" aria-label="PULSO, inicio"{% endif %}>
+    <svg viewBox="0 0 28 28" aria-hidden="true">
+      <rect width="28" height="28" rx="7" fill="#141414"/>
+      <path d="M4 16h5l2.5-6 4 11 2.5-5H24" fill="none" stroke="#7fb0f5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="marca-nombre">PULSO<span class="marca-ambito">USMP · FIA</span></span>
+  </{{ "a" if enlace else "span" }}>
+{% endmacro %}
+
+{% macro alcance(id_select) %}
+  <form class="alcance" method="get" action="{{ ruta_actual }}">
+    <label for="{{ id_select }}">Datos</label>
+    <select id="{{ id_select }}" name="fuente" onchange="this.form.submit()">
+      {% for clave, etiqueta in fuentes.items() %}
+        <option value="{{ clave }}" {% if clave == fuente %}selected{% endif %}>{{ etiqueta }}</option>
       {% endfor %}
-    </nav>
-  </header>
-  <main class="contenido">
-    {% block contenido %}{% endblock %}
+    </select>
+    <noscript><button type="submit">Cargar</button></noscript>
+  </form>
+{% endmacro %}
+
+{% macro navegacion() %}
+  <nav class="nav" aria-label="Pantallas">
+    <p class="nav-grupo">Planificar</p>
+    {% for ruta, titulo in vistas if ruta in ("/", "/carga", "/antes-despues") %}
+      <a href="{{ ruta }}?fuente={{ fuente }}" {% if ruta == ruta_actual %}aria-current="page"{% endif %}>{{ titulo }}</a>
+    {% endfor %}
+    <p class="nav-grupo">Docentes</p>
+    {% for ruta, titulo in vistas if ruta == "/simulador" %}
+      <a href="{{ ruta }}?fuente={{ fuente }}" {% if ruta == ruta_actual %}aria-current="page"{% endif %}>{{ titulo }}</a>
+    {% endfor %}
+    <p class="nav-grupo">Sílabos</p>
+    {% for ruta, titulo in vistas if ruta == "/simulacion" %}
+      <a href="{{ ruta }}?fuente={{ fuente }}" {% if ruta == ruta_actual %}aria-current="page"{% endif %}>{{ titulo }}</a>
+    {% endfor %}
+  </nav>
+{% endmacro %}
+
+<div class="app">
+  <aside class="lateral">
+    {{ marca() }}
+    {{ alcance("fuente") }}
+    {{ navegacion() }}
+    <p class="lateral-pie">Radar de sobrecarga académica · SpookyTech</p>
+  </aside>
+
+  <details class="menu-movil">
+    <summary>{{ marca(enlace=False) }}<span class="menu-boton">Menú</span></summary>
+    <div class="menu-panel">
+      {{ alcance("fuente-movil") }}
+      {{ navegacion() }}
+    </div>
+  </details>
+
+  <main class="lienzo">
+    <div class="lienzo-ancho">
+      {% block contenido %}{% endblock %}
+    </div>
   </main>
+</div>
 </body>
 </html>
