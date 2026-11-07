@@ -72,5 +72,13 @@
       <p>No hace falta mover ninguna evaluación: el calendario actual ya es el óptimo.</p>
     {% endif %}
   </section>
+
+  <section class="panel">
+    <h2>Propuesta para el coordinador</h2>
+    {# Se pide aparte para que la vista no espere al LLM. #}
+    <div hx-get="/antes-despues/propuesta?fuente={{ fuente }}" hx-trigger="load" hx-swap="outerHTML">
+      <p class="detalle">Redactando la propuesta…</p>
+    </div>
+  </section>
 {% endif %}
 {% endblock %}
