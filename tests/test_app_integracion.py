@@ -34,7 +34,7 @@ def tmp_app(tmp_path, monkeypatch):
 
 def _subir(archivos, ciclo=REAL.ciclo, fecha_inicio=REAL.fecha_inicio.isoformat()):
     return cliente.post(
-        "/cargar",
+        "/simulacion",
         files=[("archivos", (nombre, datos, "application/pdf")) for nombre, datos in archivos],
         data={"ciclo": ciclo, "fecha_inicio": fecha_inicio},
     )
@@ -46,7 +46,7 @@ def test_la_cohorte_real_reemplaza_al_mock_por_defecto():
 
 
 def test_formulario_de_carga_trae_ciclo_e_inicio_de_la_cohorte_real():
-    respuesta = cliente.get("/cargar")
+    respuesta = cliente.get("/simulacion")
     assert respuesta.status_code == 200
     assert f'value="{REAL.ciclo}"' in respuesta.text
     assert f'value="{REAL.fecha_inicio.isoformat()}"' in respuesta.text
