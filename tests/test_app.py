@@ -8,7 +8,7 @@ cliente = TestClient(app)
 
 
 def test_inicio_muestra_la_cohorte_mock():
-    respuesta = cliente.get("/")
+    respuesta = cliente.get("/", params={"fuente": "mock"})
     assert respuesta.status_code == 200
     assert "(mock)" in respuesta.text
     assert "Examen parcial" in respuesta.text
@@ -85,7 +85,7 @@ def test_carga_rechaza_semanas_fuera_del_ciclo():
 
 
 def test_carga_con_el_mock():
-    respuesta = cliente.get("/carga")
+    respuesta = cliente.get("/carga", params={"fuente": "mock"})
     assert respuesta.status_code == 200
     assert "en construcción" not in respuesta.text
 
@@ -116,7 +116,7 @@ def test_antes_despues_sin_fechas_avisa_en_vez_de_fallar(tmp_path, monkeypatch):
 
 
 def test_antes_despues_con_el_mock():
-    respuesta = cliente.get("/antes-despues")
+    respuesta = cliente.get("/antes-despues", params={"fuente": "mock"})
     assert respuesta.status_code == 200
     assert "Reducción del pico de carga" in respuesta.text
     assert "en construcción" not in respuesta.text
