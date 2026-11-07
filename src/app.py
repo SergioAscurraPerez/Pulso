@@ -15,9 +15,10 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import urlencode
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup, escape
@@ -124,6 +125,7 @@ def markdown_simple(texto: str) -> Markup:
     en_lista = False
     for linea in texto.splitlines():
         linea = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", str(escape(linea.strip())))
+        linea = re.sub(r"(?<![\w*])\*(?!\s)([^*]+?)(?<!\s)\*(?![\w*])", r"<em>\1</em>", linea)  # *cursiva* del LLM
         es_item = linea.startswith(("- ", "* "))
         if es_item != en_lista:
             html.append("<ul>" if es_item else "</ul>")
@@ -312,18 +314,60 @@ def carga(
 
 
 @lru_cache(maxsize=8)
-def _optimizar(ruta: Path, modificado: float) -> ResultadoOptimizacion:
-    # Misma clave que `_leer_cohorte`: se vuelve a optimizar solo si el JSON cambia en disco.
-    return optimizar(_leer_cohorte(ruta, modificado))
+def _optimizar(ruta: Path, modificado: float, rechazadas: tuple[str, ...] = ()) -> ResultadoOptimizacion:
+    # Misma clave que `_leer_cohorte`: se vuelve a optimizar solo si el JSON cambia en disco
+    # o si la coordinación rechaza otro movimiento (human in the loop).
+    return optimizar(cohorte_con_rechazos(_leer_cohorte(ruta, modificado), rechazadas))
+
+
+# ---------- Human in the loop: la coordinación revisa cada movimiento antes de aprobar ----------
+# Sin estado en el servidor: las decisiones viajan en la URL (?rechazadas=id1,id2&aprobada=1),
+# así funciona igual en Vercel y el enlace se puede compartir con quien tenga que revisar.
+
+
+def leer_rechazadas(cohorte: Cohorte, rechazadas: str | None) -> tuple[str, ...]:
+    """IDs de evaluaciones cuyo movimiento la coordinación rechazó (los desconocidos se ignoran)."""
+    validos = {e.id for e in cohorte.evaluaciones}
+    return tuple(sorted({i for i in (rechazadas or "").split(",") if i in validos}))
+
+
+def cohorte_con_rechazos(cohorte: Cohorte, rechazadas: tuple[str, ...]) -> Cohorte:
+    """Una evaluación rechazada se mantiene en su fecha: para el optimizador pasa a estar bloqueada."""
+    if not rechazadas:
+        return cohorte
+    evaluaciones = [e.model_copy(update={"bloqueada": True}) if e.id in rechazadas else e for e in cohorte.evaluaciones]
+    return cohorte.model_copy(update={"evaluaciones": evaluaciones})
+
+
+def url_revision(ruta: str, fuente: str, rechazadas: tuple[str, ...], agregar: str | None = None,
+                 quitar: str | None = None, aprobada: bool = False, ancla: str = "") -> str:
+    ids = set(rechazadas) | ({agregar} if agregar else set())
+    ids.discard(quitar)
+    params = {"fuente": fuente}
+    if ids:
+        params["rechazadas"] = ",".join(sorted(ids))
+    if aprobada:
+        params["aprobada"] = "1"
+    return f"{ruta}?{urlencode(params)}{ancla}"
+
+
+templates.env.globals["url_revision"] = url_revision
 
 
 @app.get("/antes-despues", response_class=HTMLResponse)
-def antes_despues(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLResponse:
-    """Calendario actual vs. el propuesto por el optimizador (PUL-16), con el diff y la reducción del pico."""
+def antes_despues(
+    request: Request, fuente: str = FUENTE_POR_DEFECTO, rechazadas: str | None = None, aprobada: bool = False
+) -> HTMLResponse:
+    """Calendario actual vs. el propuesto por el optimizador (PUL-16), con el diff y la reducción del pico.
+
+    Human in the loop: la coordinación puede rechazar movimientos (el optimizador recalcula manteniendo
+    esas fechas) y aprobar la propuesta antes de enviarla.
+    """
     cohorte = obtener_cohorte(fuente)
     ruta = FUENTES[fuente][1]
+    rechazos = leer_rechazadas(cohorte, rechazadas)
     try:
-        resultado = _optimizar(ruta, ruta.stat().st_mtime)
+        resultado = _optimizar(ruta, ruta.stat().st_mtime, rechazos)
     except ValueError as error:  # p. ej. evaluaciones sin fecha: el optimizador necesita fechas (PUL-06)
         return renderizar(request, "antes_despues.html", fuente, cohorte=cohorte, error=str(error))
     if not resultado.factible:
@@ -340,6 +384,9 @@ def antes_despues(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLRes
         resultado=resultado,
         antes=antes,
         despues=despues,
+        rechazadas=rechazos,
+        evaluaciones_rechazadas=[e for e in cohorte.evaluaciones if e.id in rechazos],
+        aprobada=aprobada,
     )
 
 
@@ -387,16 +434,18 @@ def simulador(
 
 
 @lru_cache(maxsize=8)
-def _propuesta(ruta: Path, modificado: float) -> Propuesta:
+def _propuesta(ruta: Path, modificado: float, rechazadas: tuple[str, ...] = ()) -> Propuesta:
     """Propuesta para el coordinador (PUL-08). Sin LLM configurado, o si falla, usa la plantilla de A."""
     config = config_llm()
     cliente = crear_cliente(config, timeout=TIMEOUT_LLM_S) if config.completa else None
-    cohorte = _leer_cohorte(ruta, modificado)
-    return generar_propuesta(cohorte, _optimizar(ruta, modificado), cliente=cliente, modelo=config.modelo)
+    cohorte = cohorte_con_rechazos(_leer_cohorte(ruta, modificado), rechazadas)
+    return generar_propuesta(cohorte, _optimizar(ruta, modificado, rechazadas), cliente=cliente, modelo=config.modelo)
 
 
 @app.get("/antes-despues/propuesta", response_class=HTMLResponse)
-def propuesta(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLResponse:
+def propuesta(
+    request: Request, fuente: str = FUENTE_POR_DEFECTO, rechazadas: str | None = None, aprobada: bool = False
+) -> HTMLResponse:
     """Fragmento HTML que /antes-despues carga con HTMX, para no esperar al LLM al abrir la vista.
 
     Responde siempre 200 con el fragmento: HTMX no reemplaza el contenido con respuestas de error,
@@ -405,13 +454,32 @@ def propuesta(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLRespons
     if fuente not in fuentes_disponibles():
         return templates.TemplateResponse(request, "_propuesta.html", {"error": "la cohorte ya no está disponible"})
     ruta = FUENTES[fuente][1]
+    rechazos = leer_rechazadas(obtener_cohorte(fuente), rechazadas)
     try:
-        if not _optimizar(ruta, ruta.stat().st_mtime).factible:
+        if not _optimizar(ruta, ruta.stat().st_mtime, rechazos).factible:
             raise ValueError("el optimizador no encontró una reprogramación válida")
-        contexto = {"propuesta": _propuesta(ruta, ruta.stat().st_mtime)}
+        contexto = {"propuesta": _propuesta(ruta, ruta.stat().st_mtime, rechazos)}
     except ValueError as error:
         contexto = {"error": str(error)}
+    contexto.update(fuente=fuente, rechazadas=rechazos, aprobada=aprobada)
     return templates.TemplateResponse(request, "_propuesta.html", contexto)
+
+
+@app.get("/antes-despues/propuesta.md", response_class=PlainTextResponse)
+def propuesta_descarga(fuente: str = FUENTE_POR_DEFECTO, rechazadas: str | None = None) -> PlainTextResponse:
+    """La propuesta aprobada, como archivo para enviar a los docentes."""
+    cohorte = obtener_cohorte(fuente)
+    ruta = FUENTES[fuente][1]
+    rechazos = leer_rechazadas(cohorte, rechazadas)
+    texto = _propuesta(ruta, ruta.stat().st_mtime, rechazos).texto
+    if rechazos:
+        nombres = ", ".join(f"{e.nombre} ({nombre_curso(e.curso)})" for e in cohorte.evaluaciones if e.id in rechazos)
+        texto += "\n\n" + f"_Revisado por la coordinación: se mantienen en su fecha {nombres}._"
+    return PlainTextResponse(
+        texto,
+        media_type="text/markdown; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="propuesta-reprogramacion.md"'},
+    )
 
 
 def _extraer_en_linea(pdf: Path) -> ResultadoExtraccion:
