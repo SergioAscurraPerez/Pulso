@@ -2,7 +2,17 @@
 
 PULSO es un radar predictivo de sobrecarga académica (Hackathon ENEISOFT XVI, sub-eje Bienestar).
 Extrae evaluaciones de sílabos PDF con IA, calcula la carga semanal por cohorte, detecta colisiones
-y propone una reprogramación óptima con un solver CP-SAT. Stack: Python, Pydantic, OR-Tools, Streamlit, pdfplumber, SDK de LLM.
+y propone una reprogramación óptima con un solver CP-SAT. Stack: Python, Pydantic, OR-Tools, FastAPI + Jinja2/HTMX, pdfplumber, SDK de LLM.
+
+## Despliegue: Vercel (monolito)
+
+- Toda la app (UI + extracción + motor + optimizador) es **un solo proyecto FastAPI** desplegado en Vercel como una única Vercel Function.
+- Entrypoint: `src/app.py` con una instancia `app = FastAPI()` (Vercel la detecta automáticamente). La UI se sirve con plantillas Jinja2 y archivos estáticos desde `src/ui/` (`templates/`, `static/`).
+- No usar Streamlit: no se puede desplegar en Vercel.
+- Local: `uvicorn src.app:app --reload`. Configuración en `vercel.json` (p. ej. `maxDuration` si el solver o el LLM tardan).
+- El filesystem de Vercel es de solo lectura (salvo `/tmp`): `data/cohorte.json` se genera antes y se commitea; la demo no depende de llamar al LLM en vivo.
+- Las peticiones a una Vercel Function tienen un límite de tamaño de body (~4.5 MB): los PDFs subidos deben ser pequeños.
+- La API key del LLM va como variable de entorno en el proyecto de Vercel, nunca en el código.
 
 ## Planificación: `PULSO_Product_Backlog.xlsx`
 
@@ -11,6 +21,23 @@ y propone una reprogramación óptima con un solver CP-SAT. Stack: Python, Pydan
 - Léelo antes de empezar una tarea para confirmar su `Estado`, `Rama`, `Depende de` y su criterio de aceptación (DoD).
 - No lo modifiques salvo que el usuario lo pida (normalmente solo se actualiza la columna `Estado`).
 - Hojas: `Product Backlog`, `Resumen`, `Plan por hora`, `Convenciones Git`, `Hoy (pre-evento)`.
+
+## Estado de los PRs y de `main` (comprobar SIEMPRE antes de avanzar)
+
+Antes de empezar una tarea, crear una rama o abrir un PR, comprueba el estado real de los PRs y de `main`:
+
+```bash
+git fetch --all --prune
+gh pr list --state all --json number,title,state,baseRefName,headRefName,mergedAt
+git log --oneline origin/main..origin/<rama-de-la-dependencia>   # debe salir vacío
+```
+
+1. Un PR cuenta como integrado **solo si está `MERGED` con base `main`**. Si se mergeó contra otra rama (PR apilado), su código **no está en `main`**.
+2. Para cada dependencia, verifica que su rama no tenga commits fuera de `main` (el `git log origin/main..origin/<rama>` debe salir vacío).
+3. Si `main` no está al día con un PR que figura como mergeado: **no avances**. Avisa al usuario y propón un PR de sincronización hacia `main`.
+4. Si hay PRs abiertos de los que depende la tarea, no empieces: avisa cuáles faltan mergear.
+5. Toda rama nueva sale de `main` actualizado: `git checkout main && git pull origin main && git checkout -b <rama>`.
+6. Evita los PRs apilados (base distinta de `main`). Si no queda otra, antes de mergear el siguiente cambia su base a `main` (`gh pr edit <n> --base main`) y vuelve a comprobar el diff.
 
 ## Dependencias entre tareas (regla obligatoria)
 
@@ -41,7 +68,7 @@ Grafo de dependencias (referencia rápida; si difiere del Excel, manda el Excel)
 | PUL-11 modelo CP-SAT | B | feat/optimizer-cpsat-model | PUL-09 |
 | PUL-12 función objetivo + diff | B | feat/optimizer-objective | PUL-11 |
 | PUL-13 simulador docente | B | feat/optimizer-simulator | PUL-10 |
-| PUL-14 layout Streamlit | C | feat/ui-base | PUL-02 |
+| PUL-14 layout FastAPI + deploy Vercel | C | feat/ui-base | PUL-02 |
 | PUL-15 vista carga semanal | C | feat/ui-load-view | PUL-14 |
 | PUL-16 vista antes/después | C | feat/ui-before-after | PUL-14 |
 | PUL-17 integración real | C | feat/ui-integration | PUL-07, PUL-12 |
@@ -62,7 +89,9 @@ data/mock/evaluaciones_mock.json
 src/models.py            esquema Evaluacion (compartido)
 src/extraction/          A
 src/engine/  src/optimizer/   B
-src/ui/app.py            C
+src/app.py               C (entrypoint FastAPI / Vercel)
+src/ui/                  C (templates/, static/)
+vercel.json              C
 tests/
 ```
 
@@ -83,7 +112,8 @@ Cada tarea toca solo la carpeta de su módulo. Si necesitas cambiar `src/models.
 2. Antes de abrirla: `git pull origin main` en la rama, resolver conflictos y verificar que la app/código corre.
 3. Título: `PUL-XX tipo(scope): descripción` — ej. `PUL-11 feat(optimizer): modelo CP-SAT con fechas bloqueadas`.
 4. Cuerpo: usar la plantilla de abajo (también en `.github/pull_request_template.md`). Siempre completa las dependencias y el DoD.
-5. No abras la PR si alguna dependencia no está `Hecho` y mergeada (ver regla de dependencias).
+5. No abras la PR si alguna dependencia no está `Hecho` y mergeada en `main` (ver "Estado de los PRs y de `main`").
+   La base del PR siempre es `main`.
 6. Merge a `main` solo en checkpoints (11:00, 12:40, 15:30) o con aviso al equipo. Quien mergea avisa en el chat.
 7. Nunca incluir el Excel, `.env`, claves ni archivos generados grandes.
 8. Usa `gh pr create` para crearla; no la mergees sin que el usuario lo pida.
@@ -112,7 +142,7 @@ PUL-XX — <nombre de la tarea del backlog>
 
 ## Checklist
 - [ ] `git pull origin main` hecho y sin conflictos
-- [ ] La app / el código corre localmente
+- [ ] La app / el código corre localmente (y el preview de Vercel funciona)
 - [ ] Solo toqué la carpeta de mi módulo (o lo avisé)
 - [ ] Sin `.env`, API keys ni el Excel de planificación
 - [ ] Commits en formato Conventional Commits
