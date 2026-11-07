@@ -6,6 +6,7 @@
   --borde: #e2e5eb;
   --acento: #d6336c;
   --critico: #e03131;
+  --carga-alta: #4dabf7;
   --ok: #2f9e44;
 }
 
@@ -78,6 +79,67 @@ h1 { margin: 0; font-size: 1.5rem; }
 .tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
 
 .pendiente { padding: 3rem 0; text-align: center; color: var(--texto-suave); }
+
+/* Carga semanal (PUL-15): la intensidad va en azul y el rojo se reserva para las semanas críticas. */
+h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
+
+.leyenda { display: flex; flex-wrap: wrap; gap: 1rem; margin: 0; padding: 0; list-style: none; font-size: 0.85rem; color: var(--texto-suave); }
+.leyenda li { display: flex; align-items: center; gap: 0.35rem; }
+.muestra { width: 0.9rem; height: 0.9rem; border-radius: 3px; border: 1px solid var(--borde); }
+.muestra-baja { background: var(--superficie); }
+.muestra-alta { background: var(--carga-alta); }
+.muestra-critica { background: var(--critico); }
+
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.25rem, 1fr));
+  gap: 0.4rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.celda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.6rem 0.25rem;
+  border: 2px solid var(--borde);
+  border-radius: 8px;
+  color: var(--texto);
+  text-decoration: none;
+  background: var(--superficie);
+  background: color-mix(in srgb, var(--carga-alta) calc(var(--intensidad, 0) * 100%), var(--superficie));
+}
+
+.celda:hover, .celda:focus-visible { border-color: var(--texto-suave); }
+.celda[aria-current="true"] { border-color: var(--texto); }
+.celda.critica { background: var(--critico); border-color: var(--critico); color: #fff; }
+.celda.critica[aria-current="true"] { border-color: var(--texto); }
+.celda-semana { font-size: 0.8rem; font-weight: 600; }
+.celda-carga { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+
+.panel {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+}
+
+.panel .detalle { margin: 0 0 0.5rem; }
+.colisiones { margin: 0; padding-left: 1.25rem; }
+
+.etiqueta-critica {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--critico);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
 
 @media (max-width: 700px) {
   .barra { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
