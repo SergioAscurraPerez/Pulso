@@ -76,8 +76,9 @@ FUENTES.update(registrar_ciclos(DIR_CICLOS))
 
 # Límites para que la subida y el LLM quepan en una Vercel Function (body ~4.5 MB, maxDuration 60 s).
 LIMITE_BYTES_SUBIDA = 4 * 1024 * 1024
-TIMEOUT_LLM_S = 20  # por llamada; el cliente reintenta 1 vez → hasta 40 s
-PRESUPUESTO_LLM_S = 15  # pasado este tiempo no se empieza otra extracción: 15 + 40 = 55 s < 60 s
+INTENTOS_EXTRACCION = 2  # el 2.º le devuelve al modelo los errores de validación para que los corrija
+TIMEOUT_LLM_S = 12  # por llamada; el cliente reintenta 1 vez → hasta 24 s por intento
+PRESUPUESTO_LLM_S = 10  # pasado este tiempo no se empieza otra extracción: 10 + 2 × 24 = 58 s < 60 s
 
 # Navegación: (ruta, título).
 VISTAS: list[tuple[str, str]] = [
@@ -599,7 +600,7 @@ def _extraer_en_linea(pdf: Path) -> ResultadoExtraccion:
     if not config.completa:
         raise RuntimeError("no está en la caché y el LLM no está configurado (LLM_API_KEY y LLM_MODEL)")
     cliente = crear_cliente(config, timeout=TIMEOUT_LLM_S)
-    return extraer_evaluaciones(leer_pdf(pdf), cliente=cliente, modelo=config.modelo, max_intentos=1)
+    return extraer_evaluaciones(leer_pdf(pdf), cliente=cliente, modelo=config.modelo, max_intentos=INTENTOS_EXTRACCION)
 
 
 # Errores técnicos → mensaje para quien usa la app. Se busca por texto (en minúsculas) en el error.
