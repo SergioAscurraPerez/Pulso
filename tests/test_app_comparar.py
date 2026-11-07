@@ -20,11 +20,14 @@ def test_registrar_ciclos_ordena_por_numero_y_no_abre_los_json(tmp_path):
     assert ciclos["ciclo-02"][0] == "Ciclo 2 · sílabos reales"
 
 
-def test_con_un_solo_ciclo_explica_como_agregar_mas():
+def test_con_un_solo_ciclo_avisa_sin_mostrar_comandos(monkeypatch):
+    for clave in [c for c in app_modulo.FUENTES if c.startswith("ciclo-")]:
+        monkeypatch.delitem(app_modulo.FUENTES, clave)
     respuesta = cliente.get("/comparar")
     assert respuesta.status_code == 200
-    assert "Por ahora hay 1 ciclo extraído" in respuesta.text
-    assert "--salida data/cohortes/ciclo-06.json" in respuesta.text
+    assert "Por ahora solo hay un ciclo procesado" in respuesta.text
+    # La página es para el usuario: sin comandos ni rutas del repositorio.
+    assert "python scripts" not in respuesta.text and "data/cohortes" not in respuesta.text
 
 
 def test_compara_ciclos_y_senala_el_mas_sobrecargado(tmp_path, monkeypatch):
@@ -32,7 +35,7 @@ def test_compara_ciclos_y_senala_el_mas_sobrecargado(tmp_path, monkeypatch):
     shutil.copy(MOCK, ciclo5)  # el mock: 3 colisiones, pico 255
     monkeypatch.setitem(app_modulo.FUENTES, "ciclo-05", ("Ciclo 5 · sílabos reales", ciclo5))
     texto = cliente.get("/comparar").text
-    assert "Por ahora hay" not in texto
+    assert "Por ahora solo hay" not in texto
     assert texto.index("Ciclo 5") < texto.index("Ciclo 7")  # ordenados por n.º de ciclo
     # Ciclo 7: también 3 colisiones pero pico 267.5 → es el más sobrecargado.
     assert "El ciclo 7 es el más sobrecargado" in texto
