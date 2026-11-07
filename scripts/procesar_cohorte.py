@@ -1,8 +1,8 @@
 """Genera data/cohorte.json a partir de una carpeta de sílabos PDF (PUL-07).
 
 Uso (desde la raíz del repo, con .env configurado si hay PDFs sin caché):
-    python scripts/procesar_cohorte.py data/silabos/ciclo-07 --ciclo 2026-I --inicio 2026-03-30
-    python scripts/procesar_cohorte.py data/silabos/ciclo-07 --ciclo 2026-I --inicio 2026-03-30 --forzar
+    python scripts/procesar_cohorte.py data/silabos/ciclo-07 --ciclo 2026-I --inicio 2026-03-02
+    python scripts/procesar_cohorte.py data/silabos/ciclo-07 --ciclo 2026-I --inicio 2026-03-02 --forzar
 
 Las extracciones quedan en data/cache/extraccion/ (una por PDF): commitéalas junto con
 data/cohorte.json para que la demo no dependa del LLM.

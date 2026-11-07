@@ -1,14 +1,14 @@
 {
   "nombre": "Ingeniería de Computación y Sistemas – ciclo-07 (2026-I)",
   "ciclo": "2026-I",
-  "fecha_inicio": "2026-03-30",
+  "fecha_inicio": "2026-03-02",
   "evaluaciones": [
     {
       "id": "arquitectura-de-software-para-sistemas-de-informacion--examen-parcial",
       "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
       "nombre": "Examen Parcial",
       "tipo": "examen_parcial",
-      "fecha": "2026-05-18",
+      "fecha": "2026-04-20",
       "peso": 25.0,
       "semana": 8,
       "bloqueada": false
@@ -18,7 +18,7 @@
       "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
       "nombre": "Examen final",
       "tipo": "examen_final",
-      "fecha": "2026-07-13",
+      "fecha": "2026-06-15",
       "peso": 25.0,
       "semana": 16,
       "bloqueada": false
@@ -28,7 +28,7 @@
       "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
       "nombre": "Trabajo (W1)",
       "tipo": "proyecto",
-      "fecha": "2026-07-06",
+      "fecha": "2026-06-08",
       "peso": 25.0,
       "semana": 15,
       "bloqueada": false
@@ -38,7 +38,7 @@
       "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
       "nombre": "Evaluación 1 (P1)",
       "tipo": "practica_calificada",
-      "fecha": "2026-04-20",
+      "fecha": "2026-03-23",
       "peso": 6.25,
       "semana": 4,
       "bloqueada": false
@@ -48,7 +48,7 @@
       "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
       "nombre": "Evaluación 2 (P2)",
       "tipo": "practica_calificada",
-      "fecha": "2026-05-11",
+      "fecha": "2026-04-13",
       "peso": 6.25,
       "semana": 7,
       "bloqueada": false
@@ -58,7 +58,7 @@
       "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
       "nombre": "Evaluación 3 (P3)",
       "tipo": "practica_calificada",
-      "fecha": "2026-06-08",
+      "fecha": "2026-05-11",
       "peso": 6.25,
       "semana": 11,
       "bloqueada": false
@@ -68,7 +68,7 @@
       "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
       "nombre": "Evaluación 4 (P4)",
       "tipo": "practica_calificada",
-      "fecha": "2026-06-30",
+      "fecha": "2026-06-01",
       "peso": 6.25,
       "semana": 14,
       "bloqueada": false
@@ -78,7 +78,7 @@
       "curso": "DISCAPACIDAD E INCLUSIÓN",
       "nombre": "Examen Parcial",
       "tipo": "examen_parcial",
-      "fecha": "2026-05-19",
+      "fecha": "2026-04-21",
       "peso": 50.0,
       "semana": 8,
       "bloqueada": false
@@ -88,7 +88,7 @@
       "curso": "DISCAPACIDAD E INCLUSIÓN",
       "nombre": "Examen Final",
       "tipo": "examen_final",
-      "fecha": "2026-07-14",
+      "fecha": "2026-06-16",
       "peso": 50.0,
       "semana": 16,
       "bloqueada": false
@@ -98,7 +98,7 @@
       "curso": "GESTIÓN ESTRATÉGICA",
       "nombre": "Examen Parcial",
       "tipo": "examen_parcial",
-      "fecha": "2026-05-20",
+      "fecha": "2026-04-22",
       "peso": 25.0,
       "semana": 8,
       "bloqueada": false
@@ -108,7 +108,7 @@
       "curso": "GESTIÓN ESTRATÉGICA",
       "nombre": "Examen Final",
       "tipo": "examen_final",
-      "fecha": "2026-07-15",
+      "fecha": "2026-06-17",
       "peso": 25.0,
       "semana": 16,
       "bloqueada": false
@@ -118,7 +118,7 @@
       "curso": "GESTIÓN ESTRATÉGICA",
       "nombre": "P1 : Promedio de trabajos Proyecto por equipo",
       "tipo": "proyecto",
-      "fecha": "2026-06-24",
+      "fecha": "2026-05-27",
       "peso": 6.25,
       "semana": 13,
       "bloqueada": false
@@ -128,7 +128,7 @@
       "curso": "GESTIÓN ESTRATÉGICA",
       "nombre": "P2 : Promedio de trabajos Proyecto individuales",
       "tipo": "proyecto",
-      "fecha": "2026-06-10",
+      "fecha": "2026-05-13",
       "peso": 6.25,
       "semana": 11,
       "bloqueada": false
@@ -138,7 +138,7 @@
       "curso": "GESTIÓN ESTRATÉGICA",
       "nombre": "P3 : Asistencia y Participación en Clases",
       "tipo": "otro",
-      "fecha": "2026-07-08",
+      "fecha": "2026-06-10",
       "peso": 6.25,
       "semana": 15,
       "bloqueada": false
@@ -148,7 +148,7 @@
       "curso": "GESTIÓN ESTRATÉGICA",
       "nombre": "P4 : Promedio de tareas, cuestionarios y test.",
       "tipo": "tarea",
-      "fecha": "2026-07-01",
+      "fecha": "2026-06-03",
       "peso": 6.25,
       "semana": 14,
       "bloqueada": false
@@ -158,7 +158,7 @@
       "curso": "GESTIÓN ESTRATÉGICA",
       "nombre": "W1 : Trabajo Final",
       "tipo": "proyecto",
-      "fecha": "2026-07-08",
+      "fecha": "2026-06-10",
       "peso": 25.0,
       "semana": 15,
       "bloqueada": false
@@ -168,7 +168,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Evaluación No. 1 (P1)",
       "tipo": "practica_calificada",
-      "fecha": "2026-04-23",
+      "fecha": "2026-03-26",
       "peso": 4.17,
       "semana": 4,
       "bloqueada": false
@@ -178,7 +178,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Primer avance de Laboratorio (Lb1)",
       "tipo": "laboratorio",
-      "fecha": "2026-04-23",
+      "fecha": "2026-03-26",
       "peso": 4.17,
       "semana": 4,
       "bloqueada": false
@@ -188,7 +188,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Evaluación No. 2 (P2)",
       "tipo": "practica_calificada",
-      "fecha": "2026-05-14",
+      "fecha": "2026-04-16",
       "peso": 4.17,
       "semana": 7,
       "bloqueada": false
@@ -198,7 +198,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Examen Parcial (EP)",
       "tipo": "examen_parcial",
-      "fecha": "2026-05-21",
+      "fecha": "2026-04-23",
       "peso": 25.0,
       "semana": 8,
       "bloqueada": false
@@ -208,7 +208,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Segundo avance de Laboratorio (Lb2)",
       "tipo": "laboratorio",
-      "fecha": "2026-05-28",
+      "fecha": "2026-04-30",
       "peso": 4.17,
       "semana": 9,
       "bloqueada": false
@@ -218,7 +218,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Evaluación No. 3 (P3)",
       "tipo": "practica_calificada",
-      "fecha": "2026-06-11",
+      "fecha": "2026-05-14",
       "peso": 4.17,
       "semana": 11,
       "bloqueada": false
@@ -228,7 +228,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Evaluación No. 4 (P4)",
       "tipo": "practica_calificada",
-      "fecha": "2026-06-25",
+      "fecha": "2026-05-28",
       "peso": 4.17,
       "semana": 13,
       "bloqueada": false
@@ -238,7 +238,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Tercer avance de Laboratorio (Lb3)",
       "tipo": "laboratorio",
-      "fecha": "2026-07-02",
+      "fecha": "2026-06-04",
       "peso": 4.17,
       "semana": 14,
       "bloqueada": false
@@ -248,7 +248,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Trabajo (W1)",
       "tipo": "proyecto",
-      "fecha": "2026-07-09",
+      "fecha": "2026-06-11",
       "peso": 16.67,
       "semana": 15,
       "bloqueada": false
@@ -258,7 +258,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Cuarto avance de Laboratorio (Lb4)",
       "tipo": "laboratorio",
-      "fecha": "2026-07-09",
+      "fecha": "2026-06-11",
       "peso": 4.17,
       "semana": 15,
       "bloqueada": false
@@ -268,7 +268,7 @@
       "curso": "INGENIERIA DE SOFTWARE II",
       "nombre": "Examen Final (EF)",
       "tipo": "examen_final",
-      "fecha": "2026-07-16",
+      "fecha": "2026-06-18",
       "peso": 25.0,
       "semana": 16,
       "bloqueada": false
@@ -278,7 +278,7 @@
       "curso": "INTELIGENCIA ARTIFICIAL",
       "nombre": "Práctica Calificada 1",
       "tipo": "practica_calificada",
-      "fecha": "2026-04-24",
+      "fecha": "2026-03-27",
       "peso": 15.0,
       "semana": 4,
       "bloqueada": false
@@ -288,7 +288,7 @@
       "curso": "INTELIGENCIA ARTIFICIAL",
       "nombre": "Práctica Calificada 2",
       "tipo": "practica_calificada",
-      "fecha": "2026-05-15",
+      "fecha": "2026-04-17",
       "peso": 15.0,
       "semana": 7,
       "bloqueada": false
@@ -298,7 +298,7 @@
       "curso": "INTELIGENCIA ARTIFICIAL",
       "nombre": "Examen parcial",
       "tipo": "examen_parcial",
-      "fecha": "2026-05-22",
+      "fecha": "2026-04-24",
       "peso": 20.0,
       "semana": 8,
       "bloqueada": false
@@ -308,7 +308,7 @@
       "curso": "INTELIGENCIA ARTIFICIAL",
       "nombre": "Práctica Calificada 3",
       "tipo": "practica_calificada",
-      "fecha": "2026-06-12",
+      "fecha": "2026-05-15",
       "peso": 15.0,
       "semana": 11,
       "bloqueada": false
@@ -318,7 +318,7 @@
       "curso": "INTELIGENCIA ARTIFICIAL",
       "nombre": "Práctica Calificada 4",
       "tipo": "practica_calificada",
-      "fecha": "2026-07-10",
+      "fecha": "2026-06-12",
       "peso": 15.0,
       "semana": 15,
       "bloqueada": false
@@ -328,7 +328,7 @@
       "curso": "INTELIGENCIA ARTIFICIAL",
       "nombre": "Examen final",
       "tipo": "examen_final",
-      "fecha": "2026-07-17",
+      "fecha": "2026-06-19",
       "peso": 20.0,
       "semana": 16,
       "bloqueada": false
@@ -338,7 +338,7 @@
       "curso": "LIDERAZGO Y ORATORIA",
       "nombre": "Práctica calificada 1",
       "tipo": "practica_calificada",
-      "fecha": "2026-04-20",
+      "fecha": "2026-03-23",
       "peso": 11.11,
       "semana": 4,
       "bloqueada": false
@@ -348,7 +348,7 @@
       "curso": "LIDERAZGO Y ORATORIA",
       "nombre": "Práctica calificada 2",
       "tipo": "practica_calificada",
-      "fecha": "2026-06-22",
+      "fecha": "2026-05-25",
       "peso": 11.11,
       "semana": 13,
       "bloqueada": false
@@ -358,7 +358,7 @@
       "curso": "LIDERAZGO Y ORATORIA",
       "nombre": "Práctica calificada 3",
       "tipo": "practica_calificada",
-      "fecha": "2026-06-30",
+      "fecha": "2026-06-01",
       "peso": 11.11,
       "semana": 14,
       "bloqueada": false
@@ -368,7 +368,7 @@
       "curso": "LIDERAZGO Y ORATORIA",
       "nombre": "Examen parcial",
       "tipo": "examen_parcial",
-      "fecha": "2026-05-18",
+      "fecha": "2026-04-20",
       "peso": 33.33,
       "semana": 8,
       "bloqueada": false
@@ -378,7 +378,7 @@
       "curso": "LIDERAZGO Y ORATORIA",
       "nombre": "Examen Final",
       "tipo": "examen_final",
-      "fecha": "2026-07-13",
+      "fecha": "2026-06-15",
       "peso": 33.33,
       "semana": 16,
       "bloqueada": false

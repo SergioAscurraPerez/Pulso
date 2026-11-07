@@ -11,7 +11,7 @@ from src.extraction.normalize import (
 )
 from src.models import Evaluacion, TipoEvaluacion
 
-INICIO = date(2026, 3, 30)  # lunes, semana 1 del ciclo 2026-I
+INICIO = date(2026, 3, 30)  # lunes de prueba: su semana 1 incluye Semana Santa (2 y 3 de abril)
 
 
 def _ev(curso="Curso A", nombre="Práctica calificada 1", tipo="practica_calificada", **kw) -> Evaluacion:

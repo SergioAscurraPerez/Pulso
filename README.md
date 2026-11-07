@@ -134,7 +134,17 @@ Vercel detecta `src/app.py` como entrypoint FastAPI. Hay que tener en cuenta:
 | Optimizador y simulador (PUL-11 a PUL-13) | ⏳ |
 | Interfaz web + Vercel (PUL-14 a PUL-18) | ⏳ |
 
+## Viabilidad
+
+Pulso se piensa para la FIA de la USMP. El Reglamento de Evaluación del Aprendizaje permite reprogramar **fechas**
+(parciales y finales: Departamento Académico al inicio del semestre; el resto: cada docente, art. 7), pero no el tipo
+ni el número de evaluaciones (art. 6). Pulso solo propone fechas. Análisis completo, stakeholders y fuentes en
+[`docs/viabilidad.md`](docs/viabilidad.md).
+
 ## Equipo y flujo de trabajo
+
+**SpookyTech** (USMP): Emily Peralta Cenepo · Viviana Flores Montes · Sergio Ascurra Perez.
+
 
 | Integrante | Módulo |
 |---|---|
