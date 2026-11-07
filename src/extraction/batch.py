@@ -57,13 +57,26 @@ def _extraer_con_llm(pdf: Path) -> ResultadoExtraccion:
     return extraer_evaluaciones(leer_pdf(pdf))
 
 
-def extraer_con_cache(pdf: Path, cache: Path, extractor: Extractor, forzar: bool = False) -> tuple[ResultadoExtraccion, bool]:
-    """Devuelve la extracción del PDF y si vino de la caché."""
-    archivo_cache = cache / f"{sha256(pdf)}.json"
-    if archivo_cache.is_file() and not forzar:
-        datos = json.loads(archivo_cache.read_text(encoding="utf-8"))
-        evaluaciones = [Evaluacion.model_validate(e) for e in datos["evaluaciones"]]
-        return ResultadoExtraccion(datos["curso"], evaluaciones, 0, datos.get("advertencias", [])), True
+def extraer_con_cache(
+    pdf: Path,
+    cache: Path,
+    extractor: Extractor,
+    forzar: bool = False,
+    caches_lectura: tuple[Path, ...] = (),
+) -> tuple[ResultadoExtraccion, bool]:
+    """Devuelve la extracción del PDF y si vino de la caché.
+
+    Busca en `cache` y en `caches_lectura` (p. ej. la caché del repo, de solo lectura en Vercel);
+    lo que extrae el LLM se escribe en `cache`.
+    """
+    nombre = f"{sha256(pdf)}.json"
+    archivo_cache = cache / nombre
+    if not forzar:
+        for carpeta in (cache, *caches_lectura):
+            if (carpeta / nombre).is_file():
+                datos = json.loads((carpeta / nombre).read_text(encoding="utf-8"))
+                evaluaciones = [Evaluacion.model_validate(e) for e in datos["evaluaciones"]]
+                return ResultadoExtraccion(datos["curso"], evaluaciones, 0, datos.get("advertencias", [])), True
 
     resultado = extractor(pdf)
     cache.mkdir(parents=True, exist_ok=True)
@@ -97,6 +110,7 @@ def procesar_cohorte(
     dias_clase: dict[str, int] | None = None,
     forzar: bool = False,
     al_procesar: Callable[[ReporteSilabo], None] | None = None,
+    caches_lectura: tuple[Path, ...] = (),
 ) -> ResultadoLote:
     """Procesa todos los PDFs de `carpeta` y arma la `Cohorte`. Un PDF que falla no detiene el lote."""
     pdfs = sorted(Path(carpeta).glob("*.pdf"))
@@ -107,7 +121,7 @@ def procesar_cohorte(
     reportes: list[ReporteSilabo] = []
     for pdf in pdfs:
         try:
-            resultado, desde_cache = extraer_con_cache(pdf, cache, extractor, forzar)
+            resultado, desde_cache = extraer_con_cache(pdf, cache, extractor, forzar, caches_lectura)
             evaluaciones += resultado.evaluaciones
             reporte = ReporteSilabo(pdf.name, resultado.curso, len(resultado.evaluaciones), desde_cache, None, resultado.advertencias)
         except Exception as error:  # noqa: BLE001 — se reporta y se sigue con el resto

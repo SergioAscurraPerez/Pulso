@@ -21,6 +21,7 @@ from src.engine.load_index import carga_semanal_cohorte, evaluaciones_por_semana
 from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, cargar_cohorte
 from src.optimizer.objective import ResultadoOptimizacion, optimizar
 from src.optimizer.simulator import simular
+from src.api import router as api_router
 
 RAIZ = Path(__file__).resolve().parent.parent
 DIR_UI = Path(__file__).resolve().parent / "ui"
@@ -46,6 +47,7 @@ VISTAS_PENDIENTES: dict[str, str] = {
 
 app = FastAPI(title="PULSO", description="Radar predictivo de sobrecarga académica")
 app.mount("/static", StaticFiles(directory=DIR_UI / "static"), name="static")
+app.include_router(api_router)  # API JSON de la simulación punta a punta (PUL-28)
 templates = Jinja2Templates(directory=DIR_UI / "templates")
 templates.env.filters["etiqueta_tipo"] = lambda tipo: tipo.value.replace("_", " ").capitalize()
 DIAS_SEMANA = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
