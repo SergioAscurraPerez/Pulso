@@ -1,0 +1,71 @@
+{
+  "archivo": "inteligencia-artificial-2026-I.pdf",
+  "curso": "INTELIGENCIA ARTIFICIAL",
+  "extraido_en": "2026-11-07T15:35:00+00:00",
+  "intentos": null,
+  "advertencias": [
+    "Extraído con google/gemini-3.8-flash (PUL-05) y revisado a mano."
+  ],
+  "evaluaciones": [
+    {
+      "id": "inteligencia-artificial--practica-calificada-1",
+      "curso": "INTELIGENCIA ARTIFICIAL",
+      "nombre": "Práctica Calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 15.0,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "inteligencia-artificial--practica-calificada-2",
+      "curso": "INTELIGENCIA ARTIFICIAL",
+      "nombre": "Práctica Calificada 2",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 15.0,
+      "semana": 7,
+      "bloqueada": false
+    },
+    {
+      "id": "inteligencia-artificial--examen-parcial",
+      "curso": "INTELIGENCIA ARTIFICIAL",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 20.0,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "inteligencia-artificial--practica-calificada-3",
+      "curso": "INTELIGENCIA ARTIFICIAL",
+      "nombre": "Práctica Calificada 3",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 15.0,
+      "semana": 11,
+      "bloqueada": false
+    },
+    {
+      "id": "inteligencia-artificial--practica-calificada-4",
+      "curso": "INTELIGENCIA ARTIFICIAL",
+      "nombre": "Práctica Calificada 4",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 15.0,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "id": "inteligencia-artificial--examen-final",
+      "curso": "INTELIGENCIA ARTIFICIAL",
+      "nombre": "Examen final",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 20.0,
+      "semana": 16,
+      "bloqueada": false
+    }
+  ]
+}

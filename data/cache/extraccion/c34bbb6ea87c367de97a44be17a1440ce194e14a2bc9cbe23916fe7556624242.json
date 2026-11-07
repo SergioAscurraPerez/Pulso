@@ -1,0 +1,62 @@
+{
+  "archivo": "liderazgo-y-oratoria-2026-I.pdf",
+  "curso": "LIDERAZGO Y ORATORIA",
+  "extraido_en": "2026-11-07T16:10:31+00:00",
+  "intentos": 1,
+  "advertencias": [
+    "Semana estimada (el sílabo no la indica): Práctica calificada 1 → semana 4",
+    "Semana estimada (el sílabo no la indica): Práctica calificada 3 → semana 14"
+  ],
+  "evaluaciones": [
+    {
+      "id": "liderazgo-y-oratoria--practica-calificada-1",
+      "curso": "LIDERAZGO Y ORATORIA",
+      "nombre": "Práctica calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 11.11,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "liderazgo-y-oratoria--practica-calificada-2",
+      "curso": "LIDERAZGO Y ORATORIA",
+      "nombre": "Práctica calificada 2",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 11.11,
+      "semana": 13,
+      "bloqueada": false
+    },
+    {
+      "id": "liderazgo-y-oratoria--practica-calificada-3",
+      "curso": "LIDERAZGO Y ORATORIA",
+      "nombre": "Práctica calificada 3",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 11.11,
+      "semana": 14,
+      "bloqueada": false
+    },
+    {
+      "id": "liderazgo-y-oratoria--examen-parcial",
+      "curso": "LIDERAZGO Y ORATORIA",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 33.33,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "liderazgo-y-oratoria--examen-final",
+      "curso": "LIDERAZGO Y ORATORIA",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 33.33,
+      "semana": 16,
+      "bloqueada": false
+    }
+  ]
+}

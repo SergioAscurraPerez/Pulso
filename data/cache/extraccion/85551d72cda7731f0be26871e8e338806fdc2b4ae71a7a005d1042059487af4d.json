@@ -1,0 +1,81 @@
+{
+  "archivo": "gestion-estrategica-2026-I.pdf",
+  "curso": "GESTIÓN ESTRATÉGICA",
+  "extraido_en": "2026-11-07T15:35:00+00:00",
+  "intentos": null,
+  "advertencias": [
+    "Extraído con google/gemini-3.8-flash (PUL-05) y revisado a mano."
+  ],
+  "evaluaciones": [
+    {
+      "id": "gestion-estrategica--examen-parcial",
+      "curso": "GESTIÓN ESTRATÉGICA",
+      "nombre": "Examen Parcial",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "gestion-estrategica--examen-final",
+      "curso": "GESTIÓN ESTRATÉGICA",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 16,
+      "bloqueada": false
+    },
+    {
+      "id": "gestion-estrategica--p1-promedio-de-trabajos-proyecto-por-equipo",
+      "curso": "GESTIÓN ESTRATÉGICA",
+      "nombre": "P1 : Promedio de trabajos Proyecto por equipo",
+      "tipo": "proyecto",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 13,
+      "bloqueada": false
+    },
+    {
+      "id": "gestion-estrategica--p2-promedio-de-trabajos-proyecto-individuales",
+      "curso": "GESTIÓN ESTRATÉGICA",
+      "nombre": "P2 : Promedio de trabajos Proyecto individuales",
+      "tipo": "proyecto",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 11,
+      "bloqueada": false
+    },
+    {
+      "id": "gestion-estrategica--p3-asistencia-y-participacion-en-clases",
+      "curso": "GESTIÓN ESTRATÉGICA",
+      "nombre": "P3 : Asistencia y Participación en Clases",
+      "tipo": "otro",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "id": "gestion-estrategica--p4-promedio-de-tareas-cuestionarios-y-test",
+      "curso": "GESTIÓN ESTRATÉGICA",
+      "nombre": "P4 : Promedio de tareas, cuestionarios y test.",
+      "tipo": "tarea",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 14,
+      "bloqueada": false
+    },
+    {
+      "id": "gestion-estrategica--w1-trabajo-final",
+      "curso": "GESTIÓN ESTRATÉGICA",
+      "nombre": "W1 : Trabajo Final",
+      "tipo": "proyecto",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 15,
+      "bloqueada": false
+    }
+  ]
+}
