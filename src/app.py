@@ -54,6 +54,23 @@ FUENTES: dict[str, tuple[str, Path]] = {
 # Los datos reales reemplazan al mock (PUL-17); el mock queda como respaldo.
 FUENTE_POR_DEFECTO = "cohorte" if FUENTES["cohorte"][1].is_file() else "mock"
 
+# Otros ciclos de la carrera para compararlos: data/cohortes/ciclo-01.json, ciclo-02.json…
+# (los genera scripts/procesar_cohorte.py con --salida). Cada uno es también una fuente más.
+DIR_CICLOS = RAIZ / "data" / "cohortes"
+PATRON_CICLO = re.compile(r"ciclo-0*(\d+)", re.IGNORECASE)
+
+
+def registrar_ciclos(carpeta: Path) -> dict[str, tuple[str, Path]]:
+    """Fuentes `ciclo-NN` de la carpeta, ordenadas por número de ciclo. No abre los JSON (se validan al usarlos)."""
+    ciclos = {}
+    for ruta in sorted(carpeta.glob("ciclo-*.json"), key=lambda r: int(PATRON_CICLO.search(r.stem).group(1))):
+        numero = int(PATRON_CICLO.search(ruta.stem).group(1))
+        ciclos[ruta.stem.lower()] = (f"Ciclo {numero} · sílabos reales", ruta)
+    return ciclos
+
+
+FUENTES.update(registrar_ciclos(DIR_CICLOS))
+
 # Límites para que la subida y el LLM quepan en una Vercel Function (body ~4.5 MB, maxDuration 60 s).
 LIMITE_BYTES_SUBIDA = 4 * 1024 * 1024
 TIMEOUT_LLM_S = 20  # por llamada; el cliente reintenta 1 vez → hasta 40 s
@@ -65,6 +82,7 @@ VISTAS: list[tuple[str, str]] = [
     ("/simulacion", "Simulación punta a punta"),
     ("/carga", "Carga semanal"),
     ("/antes-despues", "Antes / después"),
+    ("/comparar", "Comparar ciclos"),
     ("/simulador", "Simulador docente"),
 ]
 app = FastAPI(title="PULSO", description="Radar predictivo de sobrecarga académica")
@@ -369,6 +387,76 @@ def antes_despues(
         rechazadas=rechazos,
         evaluaciones_rechazadas=[e for e in cohorte.evaluaciones if e.id in rechazos],
         aprobada=aprobada,
+    )
+
+
+@dataclass(frozen=True)
+class FilaCiclo:
+    """Un ciclo en la comparación: su semestre y lo que logra el optimizador."""
+
+    fuente: str
+    numero: int | None  # n.º de ciclo de la carrera, si el nombre lo trae ("… ciclo-07 …")
+    cohorte: Cohorte
+    calendario: Calendario
+    carga_total: float
+    resultado: ResultadoOptimizacion | None  # None si no se pudo optimizar
+
+    @property
+    def etiqueta(self) -> str:
+        return f"Ciclo {self.numero}" if self.numero is not None else self.cohorte.nombre
+
+
+def fuentes_de_ciclos() -> list[str]:
+    """Fuentes que entran en la comparación: la cohorte principal y los ciclos de data/cohortes."""
+    return [f for f in fuentes_disponibles() if f == "cohorte" or f.startswith("ciclo-")]
+
+
+def filas_comparacion() -> list[FilaCiclo]:
+    filas: list[FilaCiclo] = []
+    nombres: set[str] = set()
+    for fuente in fuentes_de_ciclos():
+        cohorte = obtener_cohorte(fuente)
+        if cohorte.nombre in nombres:  # el mismo ciclo guardado dos veces (p. ej. cohorte.json y ciclo-07.json)
+            continue
+        nombres.add(cohorte.nombre)
+        ruta = FUENTES[fuente][1]
+        try:
+            resultado = _optimizar(ruta, ruta.stat().st_mtime)
+            resultado = resultado if resultado.factible else None
+        except ValueError:  # p. ej. evaluaciones sin fecha
+            resultado = None
+        numero = PATRON_CICLO.search(cohorte.nombre) or PATRON_CICLO.search(fuente)
+        calendario = construir_calendario(cohorte)
+        filas.append(
+            FilaCiclo(
+                fuente=fuente,
+                numero=int(numero.group(1)) if numero else None,
+                cohorte=cohorte,
+                calendario=calendario,
+                carga_total=round(sum(s.carga for s in calendario.semanas), 2),
+                resultado=resultado,
+            )
+        )
+    return sorted(filas, key=lambda f: (f.numero is None, f.numero or 0, f.cohorte.fecha_inicio))
+
+
+@app.get("/comparar", response_class=HTMLResponse)
+def comparar(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLResponse:
+    """Comparación entre ciclos de la carrera: ¿qué ciclo se sobrecarga más y cuánto mejora cada uno?"""
+    validar_fuente(fuente)
+    filas = filas_comparacion()
+    escala = max((f.calendario.pico for f in filas), default=0)
+    max_colisiones = max((len(f.calendario.colisiones) for f in filas), default=0)
+    # El más sobrecargado: más colisiones y, a igualdad, mayor carga pico.
+    critico = max(filas, key=lambda f: (len(f.calendario.colisiones), f.calendario.pico), default=None)
+    return renderizar(
+        request,
+        "comparar.html",
+        fuente,
+        filas=filas,
+        escala=escala,
+        max_colisiones=max_colisiones,
+        critico=critico,
     )
 
 
