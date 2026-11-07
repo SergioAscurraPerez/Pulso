@@ -46,6 +46,43 @@ def semana_de(evaluacion: Evaluacion, fecha_inicio: date, fecha: date | None = N
     return min(max(semana, 1), SEMANAS_CICLO)
 
 
+# Semanas de exámenes del ciclo. Las semanas consecutivas forman un mismo periodo:
+# {8} = parciales, {16, 17} = finales.
+SEMANAS_EXAMENES: frozenset[int] = frozenset({8, 16, 17})
+TIPOS_EXAMEN = frozenset({TipoEvaluacion.EXAMEN_PARCIAL, TipoEvaluacion.EXAMEN_FINAL})
+
+
+def periodo_examenes(semana: int, semanas_examenes: Iterable[int] = SEMANAS_EXAMENES) -> frozenset[int]:
+    """Semanas consecutivas de exámenes que contienen a `semana` (vacío si no es semana de exámenes)."""
+    semanas = set(semanas_examenes)
+    if semana not in semanas:
+        return frozenset()
+    inicio = fin = semana
+    while inicio - 1 in semanas:
+        inicio -= 1
+    while fin + 1 in semanas:
+        fin += 1
+    return frozenset(range(inicio, fin + 1))
+
+
+def semana_permitida(
+    evaluacion: Evaluacion,
+    semana_original: int,
+    semana_nueva: int,
+    semanas_examenes: Iterable[int] = SEMANAS_EXAMENES,
+) -> bool:
+    """Regla de semanas de exámenes (la usan el optimizador CP-SAT y el simulador docente).
+
+    - Un parcial/final que está en un periodo de exámenes solo se mueve dentro de ese periodo.
+    - Cualquier otra evaluación no entra a un periodo de exámenes distinto del suyo.
+    """
+    periodo_original = periodo_examenes(semana_original, semanas_examenes)
+    periodo_nuevo = periodo_examenes(semana_nueva, semanas_examenes)
+    if evaluacion.tipo in TIPOS_EXAMEN and periodo_original:
+        return semana_nueva in periodo_original
+    return not periodo_nuevo or periodo_nuevo == periodo_original
+
+
 def evaluaciones_por_semana(
     evaluaciones: Iterable[Evaluacion],
     fecha_inicio: date,
