@@ -25,8 +25,8 @@
   </label>
   <button type="submit">Procesar</button>
 </form>
-<p class="detalle">Los sílabos ya procesados salen de la caché al instante. Uno nuevo se extrae con el LLM
-  (1 por subida, puede tardar hasta un minuto).</p>
+<p class="detalle">Los sílabos ya procesados salen de la caché al instante; los nuevos se extraen con el LLM
+  (unos segundos cada uno). Si alguno no alcanza a procesarse, vuelve a subirlo: lo ya extraído queda guardado.</p>
 
 {% if error %}
   <section class="panel aviso">

@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import hashlib
 import re
-import shutil
 import tempfile
+import time
 from dataclasses import dataclass
 from datetime import date, timedelta
 from functools import lru_cache
@@ -51,8 +51,8 @@ FUENTE_POR_DEFECTO = "cohorte" if FUENTES["cohorte"][1].is_file() else "mock"
 
 # Límites para que la subida y el LLM quepan en una Vercel Function (body ~4.5 MB, maxDuration 60 s).
 LIMITE_BYTES_SUBIDA = 4 * 1024 * 1024
-MAX_SILABOS_NUEVOS = 1  # sílabos sin caché (los que llaman al LLM) por subida
-TIMEOUT_LLM_S = 25
+TIMEOUT_LLM_S = 20  # por llamada; el cliente reintenta 1 vez → hasta 40 s
+PRESUPUESTO_LLM_S = 15  # pasado este tiempo no se empieza otra extracción: 15 + 40 = 55 s < 60 s
 
 # Navegación: (ruta, título). Las vistas sin implementar muestran una página "en construcción".
 VISTAS: list[tuple[str, str]] = [
@@ -340,16 +340,6 @@ def propuesta(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLRespons
     return templates.TemplateResponse(request, "_propuesta.html", contexto)
 
 
-def cache_extraccion() -> Path:
-    """Caché de extracciones escribible: la del repo (PUL-07) copiada a /tmp, donde se suman las nuevas."""
-    cache = DIR_TMP / "cache-extraccion"
-    cache.mkdir(parents=True, exist_ok=True)
-    for archivo in CACHE_POR_DEFECTO.glob("*.json"):
-        if not (cache / archivo.name).exists():
-            shutil.copyfile(archivo, cache / archivo.name)
-    return cache
-
-
 def _extraer_en_linea(pdf: Path) -> ResultadoExtraccion:
     """Extrae un sílabo sin caché con el pipeline de A, con tiempos que caben en una Vercel Function."""
     config = config_llm()
@@ -402,31 +392,31 @@ def cargar_procesar(
     if no_pdf:
         return rechazar(f"No son PDF: {', '.join(no_pdf)}.")
 
-    cache = cache_extraccion()
     unicos: dict[str, tuple[str, bytes]] = {}  # sha256 -> (nombre, bytes): el mismo PDF subido dos veces cuenta una
     for nombre_pdf, datos in subidos:
         unicos.setdefault(hashlib.sha256(datos).hexdigest(), (nombre_pdf, datos))
-    nuevos = [nombre_pdf for sha, (nombre_pdf, _) in unicos.items() if not (cache / f"{sha}.json").is_file()]
-    if len(nuevos) > MAX_SILABOS_NUEVOS:
-        return rechazar(
-            f"Solo se puede extraer {MAX_SILABOS_NUEVOS} sílabo nuevo por subida (los que ya están en caché no cuentan). "
-            f"Sin caché: {', '.join(nuevos)}."
-        )
+    limite = time.monotonic() + PRESUPUESTO_LLM_S
+
+    def extraer(pdf: Path) -> ResultadoExtraccion:
+        # Solo se llama para PDFs sin caché. Lo ya extraído queda en caché: la siguiente subida sigue desde ahí.
+        if time.monotonic() > limite:
+            raise RuntimeError("no alcanzó el tiempo de esta subida; vuelve a subirlo (lo ya extraído quedó en caché)")
+        return _extraer_en_linea(pdf)
 
     with tempfile.TemporaryDirectory() as carpeta:
         for i, (nombre_pdf, datos) in enumerate(unicos.values()):
-            destino = Path(carpeta) / nombre_pdf
-            if destino.exists():  # dos PDFs distintos con el mismo nombre
-                destino = destino.with_name(f"{destino.stem}-{i}.pdf")
-            destino.write_bytes(datos)
+            # Nombre seguro y siempre en .pdf: procesar_cohorte solo toma los *.pdf de la carpeta.
+            base = "".join(c for c in Path(nombre_pdf).stem if c.isalnum() or c in "-_") or "silabo"
+            (Path(carpeta) / f"{i:02d}-{base}.pdf").write_bytes(datos)
         try:
             lote = procesar_cohorte(
                 Path(carpeta),
                 nombre=formulario["nombre"] or f"Cohorte subida ({formulario['ciclo']})",
                 ciclo=formulario["ciclo"],
                 fecha_inicio=fecha_inicio,
-                cache=cache,
-                extractor=_extraer_en_linea,
+                cache=DIR_TMP / "cache-extraccion",  # escribible también en Vercel
+                caches_lectura=(CACHE_POR_DEFECTO,),  # extracciones commiteadas (PUL-07)
+                extractor=extraer,
                 al_procesar=reportes.append,
             )
         except (RuntimeError, ValueError) as error:  # ningún sílabo se pudo extraer, o la cohorte no valida
