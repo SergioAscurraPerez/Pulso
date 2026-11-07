@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block titulo %}Comparar ciclos{% endblock %}
+{% block contenido %}
+<section class="cabecera">
+  <div>
+    <h1>Comparar ciclos</h1>
+    {% if critico and filas | length > 1 %}
+      <p class="hallazgo"><strong>El {{ critico.etiqueta | lower }} es el más sobrecargado:</strong>
+        {{ critico.calendario.colisiones | length }} {{ "colisión" if critico.calendario.colisiones | length == 1 else "colisiones" }}
+        y su semana más cargada es la {{ critico.calendario.semana_pico }} ({{ '%g' % critico.calendario.pico }}).</p>
+    {% else %}
+      <p class="hallazgo">¿Qué ciclo de la carrera se sobrecarga más y cuánto mejora cada uno al optimizar?</p>
+    {% endif %}
+  </div>
+</section>
+
+{% if filas | length < 2 %}
+  <section class="panel aviso">
+    <h2>Por ahora hay {{ filas | length }} ciclo extraído</h2>
+    <p>Para comparar, extrae los sílabos de otros ciclos (una sola vez; queda en caché) y vuelve a desplegar:</p>
+    <pre class="comando">python scripts/procesar_cohorte.py data/silabos/ciclo-06 --ciclo 2025-II --inicio AAAA-MM-DD --salida data/cohortes/ciclo-06.json</pre>
+    <p class="detalle">Cada archivo <code>data/cohortes/ciclo-NN.json</code> aparece aquí y en el selector de datos.</p>
+  </section>
+{% endif %}
+
+{% if filas %}
+  <section class="panel">
+    <div class="panel-cabecera">
+      <h2>La carga de cada ciclo, semana a semana</h2>
+      <ul class="leyenda">
+        <li><span class="muestra"></span>Más intenso = más carga (misma escala para todos)</li>
+        <li><span class="muestra muestra-critica"></span>Semana con colisión</li>
+      </ul>
+    </div>
+    <div class="matriz-marco">
+      <table class="matriz">
+        <thead>
+          <tr><th scope="col">Ciclo</th>{% for s in filas[0].calendario.semanas %}<th scope="col">S{{ s.numero }}</th>{% endfor %}</tr>
+        </thead>
+        <tbody>
+          {% for f in filas %}
+            <tr>
+              <th scope="row"><a class="enlace" href="/carga?fuente={{ f.fuente }}">{{ f.etiqueta }}</a>
+                <span class="detalle">{{ f.cohorte.ciclo }}</span></th>
+              {% for s in f.calendario.semanas %}
+                <td class="matriz-celda{% if s.critica %} critica{% endif %}"
+                    style="--intensidad: {{ '%.3f' % ((s.carga / escala) if escala else 0) }}"
+                    title="{{ f.etiqueta }} · Semana {{ s.numero }}: carga {{ '%g' % s.carga }}{% if s.critica %}, con colisión{% endif %}">
+                  <span class="sr-only">{{ '%g' % s.carga }}{% if s.critica %}, con colisión{% endif %}</span>
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-cabecera">
+      <h2>Colisiones por ciclo, antes y después de optimizar</h2>
+      <ul class="leyenda">
+        <li><span class="muestra muestra-previo"></span>Antes</li>
+        <li><span class="muestra"></span>Después</li>
+      </ul>
+    </div>
+    <ol class="barras">
+      {% for f in filas %}
+        {% set antes = f.calendario.colisiones | length %}
+        {% set despues = f.resultado.colisiones_despues if f.resultado else none %}
+        <li>
+          <span class="barras-etiqueta">{{ f.etiqueta }}</span>
+          <span class="barras-pista">
+            <span class="barra barra-antes" style="--valor: {{ '%.3f' % ((antes / max_colisiones) if max_colisiones else 0) }}"></span>
+            {% if despues is not none %}
+              <span class="barra barra-despues" style="--valor: {{ '%.3f' % ((despues / max_colisiones) if max_colisiones else 0) }}"></span>
+            {% endif %}
+          </span>
+          <span class="barras-valor num">{{ antes }} → {{ despues if despues is not none else "—" }}</span>
+        </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="panel">
+    <div class="panel-cabecera"><h2>Métricas por ciclo</h2></div>
+    <div class="tabla-marco">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Ciclo</th><th class="num">Cursos</th><th class="num">Evaluaciones</th><th class="num">Carga total</th>
+            <th class="num">Semana pico</th><th class="num">Colisiones</th><th class="num">Reducción del pico</th>
+            <th class="num">Movidas</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in filas %}
+            <tr>
+              <td>{{ f.etiqueta }} <span class="apagado">· {{ f.cohorte.ciclo }}</span></td>
+              <td class="num">{{ f.cohorte.cursos | length }}</td>
+              <td class="num">{{ f.cohorte.evaluaciones | length }}</td>
+              <td class="num">{{ '%g' % f.carga_total }}</td>
+              <td class="num">{% if f.calendario.semana_pico %}S{{ f.calendario.semana_pico }} ({{ '%g' % f.calendario.pico }}){% else %}—{% endif %}</td>
+              <td class="num">{{ f.calendario.colisiones | length }} → {{ f.resultado.colisiones_despues if f.resultado else "—" }}</td>
+              <td class="num">{{ ('%g %%' % f.resultado.reduccion_pico_pct) if f.resultado else "—" }}</td>
+              <td class="num">{{ f.resultado.movimientos | length if f.resultado else "—" }}</td>
+              <td class="num"><a class="enlace" href="/antes-despues?fuente={{ f.fuente }}">Optimizar</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endif %}
+{% endblock %}

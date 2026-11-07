@@ -36,7 +36,7 @@
 {% macro navegacion() %}
   <nav class="nav" aria-label="Pantallas">
     <p class="nav-grupo">Planificar</p>
-    {% for ruta, titulo in vistas if ruta in ("/", "/carga", "/antes-despues") %}
+    {% for ruta, titulo in vistas if ruta in ("/", "/carga", "/antes-despues", "/comparar") %}
       <a href="{{ ruta }}?fuente={{ fuente }}" {% if ruta == ruta_actual %}aria-current="page"{% endif %}>{{ titulo }}</a>
     {% endfor %}
     <p class="nav-grupo">Docentes</p>
