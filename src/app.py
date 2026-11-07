@@ -16,9 +16,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
-from src.engine.collisions import MIN_EVALUACIONES, detectar_colisiones
+from src.engine.collisions import MIN_EVALUACIONES, Colision, detectar_colisiones
 from src.engine.load_index import carga_semanal_cohorte, evaluaciones_por_semana, semana_de, semana_pico
 from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, cargar_cohorte
+from src.optimizer.objective import ResultadoOptimizacion, optimizar
 
 RAIZ = Path(__file__).resolve().parent.parent
 DIR_UI = Path(__file__).resolve().parent / "ui"
@@ -40,7 +41,6 @@ VISTAS: list[tuple[str, str]] = [
 ]
 # Ruta -> tarea del backlog que la implementa. Cada tarea quita su entrada al agregar la vista real.
 VISTAS_PENDIENTES: dict[str, str] = {
-    "/antes-despues": "PUL-16",
     "/simulador": "PUL-18",
 }
 
@@ -95,9 +95,18 @@ def lunes_de_semana(cohorte: Cohorte, semana: int) -> date:
     return cohorte.fecha_inicio + timedelta(weeks=semana - 1)
 
 
-def ordenar_por_fecha(cohorte: Cohorte, evaluaciones: list[Evaluacion]) -> list[Evaluacion]:
-    """Orden cronológico; si solo hay semana (antes de normalizar, PUL-06), se usa el lunes de esa semana."""
-    return sorted(evaluaciones, key=lambda e: (e.fecha or lunes_de_semana(cohorte, e.semana), e.curso, e.nombre))
+def ordenar_por_fecha(
+    cohorte: Cohorte, evaluaciones: list[Evaluacion], fechas: dict[str, date] | None = None
+) -> list[Evaluacion]:
+    """Orden cronológico (con `fechas={id: fecha}` sobrescritas, si se pasan).
+
+    Si solo hay semana (antes de normalizar, PUL-06), se usa el lunes de esa semana.
+    """
+    fechas = fechas or {}
+    return sorted(
+        evaluaciones,
+        key=lambda e: (fechas.get(e.id) or e.fecha or lunes_de_semana(cohorte, e.semana), e.curso, e.nombre),
+    )
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -112,13 +121,59 @@ class SemanaCarga:
     numero: int
     lunes: date
     carga: float
-    intensidad: float  # carga / carga pico, en [0, 1]: define el color de la celda
+    intensidad: float  # carga / escala del calendario, en [0, 1]: define el color de la celda
     critica: bool  # contiene evaluaciones de una colisión (PUL-10)
     evaluaciones: list[Evaluacion]
 
     @property
     def domingo(self) -> date:
         return self.lunes + timedelta(days=6)
+
+
+@dataclass(frozen=True)
+class Calendario:
+    """Carga semanal y colisiones de la cohorte en un escenario de fechas."""
+
+    semanas: list[SemanaCarga]
+    colisiones: list[Colision]
+    ids_en_colision: set[str]
+    semana_pico: int | None  # None si la cohorte no tiene carga
+    pico: float
+
+
+def construir_calendario(cohorte: Cohorte, fechas: dict[str, date] | None = None, escala: float | None = None) -> Calendario:
+    """Calendario con las fechas originales o, con `fechas={id: fecha}`, con las del optimizador.
+
+    `escala` es la carga que se pinta con el color más intenso (por defecto, el pico del propio
+    calendario). Para comparar dos calendarios lado a lado se usa la misma escala en ambos.
+    """
+    fechas = fechas or {}
+    carga_por_semana = carga_semanal_cohorte(cohorte, fechas)
+    numero_pico, pico = semana_pico(carga_por_semana)
+    escala = escala or pico
+    colisiones = detectar_colisiones(cohorte.evaluaciones, fechas)
+    semanas_criticas = {
+        semana_de(e, cohorte.fecha_inicio, colision.fechas[e.id]) for colision in colisiones for e in colision.evaluaciones
+    }
+    por_semana = evaluaciones_por_semana(cohorte.evaluaciones, cohorte.fecha_inicio, fechas)
+    semanas = [
+        SemanaCarga(
+            numero=n,
+            lunes=lunes_de_semana(cohorte, n),
+            carga=carga_por_semana[n],
+            intensidad=min(carga_por_semana[n] / escala, 1.0) if escala else 0.0,
+            critica=n in semanas_criticas,
+            evaluaciones=ordenar_por_fecha(cohorte, por_semana[n], fechas),
+        )
+        for n in range(1, SEMANAS_CICLO + 1)
+    ]
+    return Calendario(
+        semanas=semanas,
+        colisiones=colisiones,
+        ids_en_colision={e.id for colision in colisiones for e in colision.evaluaciones},
+        semana_pico=numero_pico if pico else None,
+        pico=pico,
+    )
 
 
 @app.get("/carga", response_class=HTMLResponse)
@@ -129,37 +184,47 @@ def carga(
 ) -> HTMLResponse:
     """Heatmap de carga semanal (PUL-15): semanas con colisiones en rojo; `semana` abre su detalle."""
     cohorte = obtener_cohorte(fuente)
-    carga_por_semana = carga_semanal_cohorte(cohorte)
-    numero_pico, pico = semana_pico(carga_por_semana)
-    colisiones = detectar_colisiones(cohorte.evaluaciones)
-    ids_en_colision = {e.id for colision in colisiones for e in colision.evaluaciones}
-    semanas_criticas = {
-        semana_de(e, cohorte.fecha_inicio, colision.fechas[e.id]) for colision in colisiones for e in colision.evaluaciones
-    }
-    por_semana = evaluaciones_por_semana(cohorte.evaluaciones, cohorte.fecha_inicio)
-    semanas = [
-        SemanaCarga(
-            numero=n,
-            lunes=lunes_de_semana(cohorte, n),
-            carga=carga_por_semana[n],
-            intensidad=carga_por_semana[n] / pico if pico else 0.0,
-            critica=n in semanas_criticas,
-            evaluaciones=ordenar_por_fecha(cohorte, por_semana[n]),
-        )
-        for n in range(1, SEMANAS_CICLO + 1)
-    ]
+    calendario = construir_calendario(cohorte)
     return renderizar(
         request,
         "carga.html",
         fuente,
         cohorte=cohorte,
-        semanas=semanas,
-        seleccionada=semanas[semana - 1] if semana else None,
-        semana_pico=numero_pico if pico else None,
-        pico=pico,
-        colisiones=colisiones,
-        ids_en_colision=ids_en_colision,
+        calendario=calendario,
+        seleccionada=calendario.semanas[semana - 1] if semana else None,
         min_evaluaciones=MIN_EVALUACIONES,
+    )
+
+
+@lru_cache(maxsize=8)
+def _optimizar(ruta: Path, modificado: float) -> ResultadoOptimizacion:
+    # Misma clave que `_leer_cohorte`: se vuelve a optimizar solo si el JSON cambia en disco.
+    return optimizar(_leer_cohorte(ruta, modificado))
+
+
+@app.get("/antes-despues", response_class=HTMLResponse)
+def antes_despues(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLResponse:
+    """Calendario actual vs. el propuesto por el optimizador (PUL-16), con el diff y la reducción del pico."""
+    cohorte = obtener_cohorte(fuente)
+    ruta = FUENTES[fuente][1]
+    try:
+        resultado = _optimizar(ruta, ruta.stat().st_mtime)
+    except ValueError as error:  # p. ej. evaluaciones sin fecha: el optimizador necesita fechas (PUL-06)
+        return renderizar(request, "antes_despues.html", fuente, cohorte=cohorte, error=str(error))
+    if not resultado.factible:
+        error = f"El optimizador no encontró una reprogramación válida (estado: {resultado.estado})."
+        return renderizar(request, "antes_despues.html", fuente, cohorte=cohorte, error=error)
+    antes = construir_calendario(cohorte)
+    # Misma escala de color en ambos calendarios para que la comparación sea justa.
+    despues = construir_calendario(cohorte, resultado.fechas, escala=antes.pico)
+    return renderizar(
+        request,
+        "antes_despues.html",
+        fuente,
+        cohorte=cohorte,
+        resultado=resultado,
+        antes=antes,
+        despues=despues,
     )
 
 

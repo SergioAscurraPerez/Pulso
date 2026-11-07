@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "_heatmap.html" import heatmap, leyenda %}
+{% block titulo %}Antes / después{% endblock %}
+{% block contenido %}
+<section class="cabecera">
+  <div>
+    <h1>Antes / después</h1>
+    <p class="detalle">{{ cohorte.nombre }} · reprogramación propuesta por el optimizador CP-SAT</p>
+  </div>
+  {% if not error %}{{ leyenda() }}{% endif %}
+</section>
+
+{% if error %}
+  <section class="panel aviso">
+    <h2>No se pudo optimizar esta cohorte</h2>
+    <p>{{ error }}</p>
+  </section>
+{% else %}
+  {% set pico_antes = resultado.pico_antes %}
+  {% set pico_despues = resultado.pico_despues %}
+  <section class="metricas">
+    <div class="metrica destacada">
+      <span class="metrica-valor">{{ '%g' % resultado.reduccion_pico_pct }} %</span>
+      <span class="metrica-titulo">Reducción del pico de carga</span>
+    </div>
+    <div class="metrica">
+      <span class="metrica-valor">{{ '%g' % pico_antes[1] }} → {{ '%g' % pico_despues[1] }}</span>
+      <span class="metrica-titulo">Carga pico (semana {{ pico_antes[0] }} → semana {{ pico_despues[0] }})</span>
+    </div>
+    <div class="metrica">
+      <span class="metrica-valor">{{ resultado.colisiones_antes }} → {{ resultado.colisiones_despues }}</span>
+      <span class="metrica-titulo">Colisiones</span>
+    </div>
+    <div class="metrica">
+      <span class="metrica-valor">{{ resultado.movimientos | length }}</span>
+      <span class="metrica-titulo">Evaluaciones movidas</span>
+    </div>
+  </section>
+
+  <section class="comparacion">
+    <div class="panel">
+      <h2>Antes</h2>
+      {{ heatmap(antes.semanas) }}
+    </div>
+    <div class="panel">
+      <h2>Después</h2>
+      {{ heatmap(despues.semanas) }}
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Evaluaciones movidas ({{ resultado.movimientos | length }})</h2>
+    <p class="detalle">Las evaluaciones bloqueadas por el docente no se mueven. Solver: {{ resultado.estado }} en {{ '%g' % resultado.tiempo_s }} s.</p>
+    {% if resultado.movimientos %}
+      <table class="tabla">
+        <thead>
+          <tr><th>Curso</th><th>Evaluación</th><th>Fecha original</th><th>Fecha nueva</th><th class="num">Días</th></tr>
+        </thead>
+        <tbody>
+          {% for m in resultado.movimientos %}
+            <tr>
+              <td>{{ m.curso }}</td>
+              <td>{{ m.nombre }}</td>
+              <td>{{ m.fecha_original.strftime('%d/%m/%Y') }}</td>
+              <td>{{ m.fecha_nueva.strftime('%d/%m/%Y') }}</td>
+              <td class="num">{{ '%+d' % m.dias }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No hace falta mover ninguna evaluación: el calendario actual ya es el óptimo.</p>
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

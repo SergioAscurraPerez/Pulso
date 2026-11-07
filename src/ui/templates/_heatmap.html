@@ -1,0 +1,33 @@
+{# Heatmap de las semanas del ciclo. La intensidad va en azul y las semanas críticas, en rojo.
+   Con `fuente`, cada celda es un enlace al detalle de su semana en /carga; sin ella, es solo lectura. #}
+{% macro heatmap(semanas, fuente=None, seleccionada=None) %}
+<ol class="heatmap">
+  {% for s in semanas %}
+    {% set etiqueta %}Semana {{ s.numero }}: carga {{ '%g' % s.carga }}{% if s.critica %}, semana crítica{% endif %}{% endset %}
+    <li>
+      {% if fuente %}
+        <a class="celda{% if s.critica %} critica{% endif %}"
+           href="/carga?fuente={{ fuente }}&semana={{ s.numero }}"
+           style="--intensidad: {{ '%.2f' % s.intensidad }}"
+           aria-label="{{ etiqueta }}"
+           {% if seleccionada and seleccionada.numero == s.numero %}aria-current="true"{% endif %}>
+      {% else %}
+        <div class="celda{% if s.critica %} critica{% endif %}"
+             style="--intensidad: {{ '%.2f' % s.intensidad }}"
+             role="img" aria-label="{{ etiqueta }}">
+      {% endif %}
+          <span class="celda-semana">S{{ s.numero }}</span>
+          <span class="celda-carga">{{ '%g' % s.carga }}</span>
+      {% if fuente %}</a>{% else %}</div>{% endif %}
+    </li>
+  {% endfor %}
+</ol>
+{% endmacro %}
+
+{% macro leyenda() %}
+<ul class="leyenda">
+  <li><span class="muestra muestra-baja"></span>Carga baja</li>
+  <li><span class="muestra muestra-alta"></span>Carga alta</li>
+  <li><span class="muestra muestra-critica"></span>Semana crítica</li>
+</ul>
+{% endmacro %}
