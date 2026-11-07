@@ -1,0 +1,277 @@
+{
+  "nombre": "Ingeniería de Software – 5.º ciclo (mock)",
+  "ciclo": "2026-II",
+  "fecha_inicio": "2026-08-24",
+  "evaluaciones": [
+    {
+      "curso": "Ingeniería de Software II",
+      "nombre": "Práctica calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": "2026-09-15",
+      "peso": 10,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "curso": "Ingeniería de Software II",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2026-10-12",
+      "peso": 25,
+      "semana": 8,
+      "bloqueada": true
+    },
+    {
+      "curso": "Ingeniería de Software II",
+      "nombre": "Avance de proyecto",
+      "tipo": "proyecto",
+      "fecha": "2026-11-05",
+      "peso": 15,
+      "semana": 11,
+      "bloqueada": false
+    },
+    {
+      "curso": "Ingeniería de Software II",
+      "nombre": "Práctica calificada 2",
+      "tipo": "practica_calificada",
+      "fecha": "2026-11-10",
+      "peso": 10,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "curso": "Ingeniería de Software II",
+      "nombre": "Examen final",
+      "tipo": "examen_final",
+      "fecha": "2026-12-07",
+      "peso": 30,
+      "semana": 16,
+      "bloqueada": true
+    },
+    {
+      "curso": "Base de Datos II",
+      "nombre": "Laboratorio 1",
+      "tipo": "laboratorio",
+      "fecha": "2026-09-11",
+      "peso": 5,
+      "semana": 3,
+      "bloqueada": false
+    },
+    {
+      "curso": "Base de Datos II",
+      "nombre": "Práctica calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": "2026-09-23",
+      "peso": 10,
+      "semana": 5,
+      "bloqueada": false
+    },
+    {
+      "curso": "Base de Datos II",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2026-10-13",
+      "peso": 25,
+      "semana": 8,
+      "bloqueada": true
+    },
+    {
+      "curso": "Base de Datos II",
+      "nombre": "Laboratorio 2",
+      "tipo": "laboratorio",
+      "fecha": "2026-10-30",
+      "peso": 5,
+      "semana": 10,
+      "bloqueada": false
+    },
+    {
+      "curso": "Base de Datos II",
+      "nombre": "Proyecto final",
+      "tipo": "proyecto",
+      "fecha": "2026-12-04",
+      "peso": 20,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "curso": "Base de Datos II",
+      "nombre": "Examen final",
+      "tipo": "examen_final",
+      "fecha": "2026-12-08",
+      "peso": 35,
+      "semana": 16,
+      "bloqueada": true
+    },
+    {
+      "curso": "Sistemas Operativos",
+      "nombre": "Práctica calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": "2026-09-17",
+      "peso": 10,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "curso": "Sistemas Operativos",
+      "nombre": "Laboratorio 1",
+      "tipo": "laboratorio",
+      "fecha": "2026-09-28",
+      "peso": 10,
+      "semana": 6,
+      "bloqueada": false
+    },
+    {
+      "curso": "Sistemas Operativos",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2026-10-14",
+      "peso": 30,
+      "semana": 8,
+      "bloqueada": true
+    },
+    {
+      "curso": "Sistemas Operativos",
+      "nombre": "Práctica calificada 2",
+      "tipo": "practica_calificada",
+      "fecha": "2026-11-11",
+      "peso": 10,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "curso": "Sistemas Operativos",
+      "nombre": "Examen final",
+      "tipo": "examen_final",
+      "fecha": "2026-12-09",
+      "peso": 40,
+      "semana": 16,
+      "bloqueada": true
+    },
+    {
+      "curso": "Investigación Operativa",
+      "nombre": "Práctica calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": "2026-09-24",
+      "peso": 10,
+      "semana": 5,
+      "bloqueada": false
+    },
+    {
+      "curso": "Investigación Operativa",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2026-10-15",
+      "peso": 30,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "curso": "Investigación Operativa",
+      "nombre": "Práctica calificada 2",
+      "tipo": "practica_calificada",
+      "fecha": "2026-11-12",
+      "peso": 10,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "curso": "Investigación Operativa",
+      "nombre": "Trabajo aplicativo",
+      "tipo": "proyecto",
+      "fecha": "2026-11-27",
+      "peso": 20,
+      "semana": 14,
+      "bloqueada": false
+    },
+    {
+      "curso": "Investigación Operativa",
+      "nombre": "Examen final",
+      "tipo": "examen_final",
+      "fecha": "2026-12-10",
+      "peso": 30,
+      "semana": 16,
+      "bloqueada": true
+    },
+    {
+      "curso": "Redes de Computadoras",
+      "nombre": "Laboratorio 1",
+      "tipo": "laboratorio",
+      "fecha": "2026-09-14",
+      "peso": 5,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "curso": "Redes de Computadoras",
+      "nombre": "Práctica calificada 1",
+      "tipo": "practica_calificada",
+      "fecha": "2026-10-09",
+      "peso": 10,
+      "semana": 7,
+      "bloqueada": false
+    },
+    {
+      "curso": "Redes de Computadoras",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": "2026-10-19",
+      "peso": 25,
+      "semana": 9,
+      "bloqueada": false
+    },
+    {
+      "curso": "Redes de Computadoras",
+      "nombre": "Laboratorio 2",
+      "tipo": "laboratorio",
+      "fecha": "2026-11-09",
+      "peso": 10,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "curso": "Redes de Computadoras",
+      "nombre": "Examen final",
+      "tipo": "examen_final",
+      "fecha": "2026-12-11",
+      "peso": 35,
+      "semana": 16,
+      "bloqueada": true
+    },
+    {
+      "curso": "Ética y Deontología",
+      "nombre": "Control de lectura 1",
+      "tipo": "control_lectura",
+      "fecha": "2026-09-09",
+      "peso": 10,
+      "semana": 3,
+      "bloqueada": false
+    },
+    {
+      "curso": "Ética y Deontología",
+      "nombre": "Exposición grupal",
+      "tipo": "exposicion",
+      "fecha": "2026-10-16",
+      "peso": 20,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "curso": "Ética y Deontología",
+      "nombre": "Ensayo final",
+      "tipo": "tarea",
+      "fecha": "2026-11-13",
+      "peso": 30,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "curso": "Ética y Deontología",
+      "nombre": "Control de lectura 2",
+      "tipo": "control_lectura",
+      "fecha": "2026-12-02",
+      "peso": 10,
+      "semana": 15,
+      "bloqueada": false
+    }
+  ]
+}
