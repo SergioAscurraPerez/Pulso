@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block titulo %}Subir sílabos{% endblock %}
+{% block contenido %}
+<section class="cabecera">
+  <div>
+    <h1>Subir sílabos</h1>
+    <p class="detalle">Sube los sílabos en PDF de los cursos de una cohorte: PULSO extrae sus evaluaciones,
+      calcula la carga semanal y propone la reprogramación.</p>
+  </div>
+</section>
+
+<form class="formulario" method="post" action="/cargar" enctype="multipart/form-data"
+      onsubmit="this.querySelector('button').disabled = true; this.querySelector('button').textContent = 'Procesando…';">
+  <label class="campo">Sílabos (PDF, máx. 4 MB en total)
+    <input type="file" name="archivos" accept="application/pdf,.pdf" multiple required>
+  </label>
+  <label class="campo">Ciclo
+    <input type="text" name="ciclo" required placeholder="2026-I" value="{{ formulario.ciclo }}">
+  </label>
+  <label class="campo">Lunes de la semana 1
+    <input type="date" name="fecha_inicio" required value="{{ formulario.fecha_inicio.isoformat() if formulario.fecha_inicio else '' }}">
+  </label>
+  <label class="campo">Nombre de la cohorte (opcional)
+    <input type="text" name="nombre" value="{{ formulario.nombre }}">
+  </label>
+  <button type="submit">Procesar</button>
+</form>
+<p class="detalle">Los sílabos ya procesados salen de la caché al instante. Uno nuevo se extrae con el LLM
+  (1 por subida, puede tardar hasta un minuto).</p>
+
+{% if error %}
+  <section class="panel aviso">
+    <h2>No se pudo armar la cohorte</h2>
+    <p>{{ error }}</p>
+  </section>
+{% endif %}
+
+{% if reportes %}
+  <section class="panel">
+    <h2>Sílabos procesados</h2>
+    <ul class="reportes">
+      {% for r in reportes %}
+        <li>
+          {% if r.error %}
+            <span class="etiqueta-critica">Error</span> <strong>{{ r.archivo }}</strong>: {{ r.error }}
+          {% else %}
+            <strong>{{ r.archivo }}</strong> → {{ r.curso }} · {{ r.evaluaciones }} evaluaciones
+            ({{ "caché" if r.desde_cache else "LLM" }})
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}
+
+{% if lote %}
+  <section class="panel">
+    <h2>{{ lote.cohorte.nombre }}</h2>
+    <p>{{ lote.cohorte.evaluaciones | length }} evaluaciones de {{ lote.cohorte.cursos | length }} cursos.
+      <a href="/carga?fuente=subida">Ver la carga semanal</a> ·
+      <a href="/antes-despues?fuente=subida">Ver la reprogramación</a></p>
+    {% if lote.advertencias %}
+      <p class="detalle">Avisos de la normalización:</p>
+      <ul class="reportes">
+        {% for a in lote.advertencias %}<li>{{ a }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

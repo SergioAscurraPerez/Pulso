@@ -128,7 +128,8 @@ h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
 }
 
 .panel .detalle { margin: 0 0 0.5rem; }
-.colisiones { margin: 0; padding-left: 1.25rem; }
+.colisiones, .reportes { margin: 0; padding-left: 1.25rem; }
+.reportes li { margin-bottom: 0.25rem; }
 
 .etiqueta-critica {
   display: inline-block;
@@ -187,6 +188,11 @@ h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
   background: var(--superficie);
 }
 .campo select { max-width: 32rem; }
+
+/* Propuesta para el coordinador (PUL-17). */
+.propuesta h3 { margin: 1rem 0 0.4rem; font-size: 1rem; }
+.propuesta h3:first-child { margin-top: 0; }
+.propuesta p, .propuesta ul { margin: 0 0 0.5rem; }
 .formulario button { background: var(--acento); border-color: var(--acento); color: #fff; font-weight: 600; cursor: pointer; }
 .metrica.riesgo { border-color: var(--critico); }
 .metrica.riesgo .metrica-valor { color: var(--critico); font-size: 2rem; }

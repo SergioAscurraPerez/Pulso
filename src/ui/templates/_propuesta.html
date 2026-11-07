@@ -1,0 +1,9 @@
+{# Fragmento que /antes-despues carga con HTMX (sin layout). #}
+<div class="propuesta">
+  {% if error %}
+    <p>No se pudo generar la propuesta: {{ error }}</p>
+  {% else %}
+    {{ propuesta.texto | markdown_simple }}
+    <p class="detalle">{% if propuesta.generada_por == "llm" %}Redactada por el LLM ({{ propuesta.modelo }}) con los datos del optimizador.{% else %}Generada con la plantilla (LLM no disponible), con los datos del optimizador.{% endif %}</p>
+  {% endif %}
+</div>
