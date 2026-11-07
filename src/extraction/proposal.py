@@ -19,6 +19,7 @@ from datetime import date, timedelta
 from src.engine.collisions import MIN_EVALUACIONES, VENTANA_DIAS, detectar_colisiones, es_fuerte
 from src.engine.load_index import carga_semanal_cohorte, semana_de
 from src.extraction.llm import ClienteChat, config_llm, crear_cliente
+from src.formato import nombre_curso
 from src.models import Cohorte
 from src.optimizer.objective import ResultadoOptimizacion
 
@@ -83,7 +84,8 @@ def _escenario(cohorte: Cohorte, fechas: dict[str, date]) -> dict:
     escenario = {
         "colisiones": len(colisiones),
         "detalle_colisiones": [
-            {"desde": fecha_larga(c.inicio), "hasta": fecha_larga(c.fin), "cursos": c.cursos} for c in colisiones
+            {"desde": fecha_larga(c.inicio), "hasta": fecha_larga(c.fin), "cursos": [nombre_curso(x) for x in c.cursos]}
+            for c in colisiones
         ],
         "evaluaciones_en_colision": len(en_colision),
         "semanas_criticas": len({semana_de(e, cohorte.fecha_inicio, c.fechas[e.id]) for c in colisiones for e in c.evaluaciones}),
@@ -122,7 +124,7 @@ def metricas_caso(cohorte: Cohorte, resultado: ResultadoOptimizacion) -> dict:
             "evaluaciones_movidas": len(resultado.movimientos),
             "dias_movidos": sum(dias),
             "max_dias_una_evaluacion": max(dias, default=0),
-            "cursos_a_coordinar": sorted({m.curso for m in resultado.movimientos}),
+            "cursos_a_coordinar": sorted({nombre_curso(m.curso) for m in resultado.movimientos}),
             "evaluaciones_bloqueadas_respetadas": sum(e.bloqueada for e in cohorte.evaluaciones),
         },
     }
@@ -145,7 +147,7 @@ def datos_propuesta(cohorte: Cohorte, resultado: ResultadoOptimizacion) -> dict:
         "evaluaciones_bloqueadas": metricas["costo"]["evaluaciones_bloqueadas_respetadas"],
         "movimientos": [
             {
-                "curso": m.curso,
+                "curso": nombre_curso(m.curso),
                 "evaluacion": m.nombre,
                 "fecha_original": fecha_larga(m.fecha_original),
                 "fecha_nueva": fecha_larga(m.fecha_nueva),

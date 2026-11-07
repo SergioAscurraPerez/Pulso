@@ -31,6 +31,7 @@ from src.extraction.llm import config_llm, crear_cliente
 from src.extraction.llm_parser import ResultadoExtraccion, extraer_evaluaciones
 from src.extraction.pdf_reader import leer_pdf
 from src.extraction.proposal import Propuesta, generar_propuesta
+from src.formato import nombre_curso
 from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, TipoEvaluacion, cargar_cohorte
 from src.optimizer.objective import ResultadoOptimizacion, optimizar
 from src.optimizer.simulator import simular
@@ -84,25 +85,6 @@ ETIQUETAS_TIPO: dict[TipoEvaluacion, str] = {
 templates.env.filters["etiqueta_tipo"] = lambda tipo: ETIQUETAS_TIPO[tipo]
 DIAS_SEMANA = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
 templates.env.filters["fecha_con_dia"] = lambda f: f"{DIAS_SEMANA[f.weekday()]} {f.strftime('%d/%m/%Y')}"
-
-_ROMANOS = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"}
-_MENORES = {"de", "del", "la", "las", "el", "los", "y", "e", "en", "para", "por", "a", "o", "u", "con", "si"}
-
-
-def nombre_curso(nombre: str) -> str:
-    """Los sílabos traen el curso en MAYÚSCULAS: se muestra en formato título ("Ingenieria de Software II")."""
-    if nombre != nombre.upper():
-        return nombre
-    palabras = []
-    for i, palabra in enumerate(nombre.split()):
-        if palabra in _ROMANOS:
-            palabras.append(palabra)
-        elif i and palabra.lower() in _MENORES:
-            palabras.append(palabra.lower())
-        else:
-            palabras.append(palabra.capitalize())
-    return " ".join(palabras)
-
 
 def escala_ticks(maximo: float, marcas: int = 4) -> list[float]:
     """Marcas redondas del eje Y (0, 100, 200, 300) que cubren `maximo`."""
