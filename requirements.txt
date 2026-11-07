@@ -1,0 +1,22 @@
+# Dependencias de la app (Vercel instala este archivo).
+# Las de desarrollo (pytest) están en requirements-dev.txt.
+
+# Modelo de datos
+pydantic==2.14.3
+
+# Optimizador
+ortools==9.15.6755
+
+# Web (monolito FastAPI en Vercel)
+fastapi==0.162.1
+uvicorn==0.54.0
+jinja2==3.1.6
+python-multipart==0.0.33
+
+# Extracción de sílabos
+pdfplumber==0.11.10
+# OpenRouter expone una API compatible con OpenAI: se usa el SDK oficial con LLM_BASE_URL
+openai==3.46.0
+
+# Configuración (.env en local)
+python-dotenv==1.2.4
