@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 
 from pydantic import BaseModel, Field, ValidationError
 
-from src.extraction.llm import ClienteChat, config_llm, crear_cliente
+from src.extraction.llm import ClienteChat, config_llm, crear_cliente, razonamiento
 from src.extraction.pdf_reader import TextoSilabo
 from src.extraction.recorte import recortar_para_extraccion
 from src.models import SEMANAS_CICLO, Evaluacion, TipoEvaluacion
@@ -32,14 +32,6 @@ def _max_tokens() -> int:
     return int(os.getenv("LLM_MAX_TOKENS") or MAX_TOKENS)
 
 
-def _razonamiento() -> dict:
-    """LLM_REASONING: low (por defecto) | medium | high | off | auto (no enviar nada al proveedor)."""
-    valor = (os.getenv("LLM_REASONING") or "low").strip().lower()
-    if valor == "auto":
-        return {}
-    if valor == "off":
-        return {"reasoning": {"enabled": False}}
-    return {"reasoning": {"effort": valor}}
 TOLERANCIA_PESOS = 5.0  # la suma de pesos debe estar en 100 ± 5
 
 
@@ -180,7 +172,7 @@ def extraer_evaluaciones(
                 max_tokens=_max_tokens(),
                 messages=mensajes,
                 response_format=_formato_respuesta(con_esquema),
-                extra_body=_razonamiento(),
+                extra_body=razonamiento(),
             )
         except Exception as error:  # noqa: BLE001
             mensaje = str(error).lower()

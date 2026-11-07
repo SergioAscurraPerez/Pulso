@@ -125,3 +125,13 @@ def test_sin_matricula_lo_aclara_y_no_inventa_alumnos():
     texto = propuesta_plantilla(datos_propuesta(cohorte, res))
     assert "Sin datos de matrícula" in texto
     assert "Estudiantes con al menos una colisión" not in texto
+
+
+def test_respeta_llm_reasoning_para_otros_proveedores(caso, monkeypatch):
+    """Con LLM_REASONING=auto (p. ej. la API de Gemini) no se envía el parámetro propio de OpenRouter."""
+    cohorte, res = caso
+    for valor, esperado in [("auto", {}), ("low", {"reasoning": {"effort": "low"}})]:
+        monkeypatch.setenv("LLM_REASONING", valor)
+        cliente = ClienteStub()
+        generar_propuesta(cohorte, res, cliente=cliente, modelo="m")
+        assert cliente.llamadas[0]["extra_body"] == esperado
