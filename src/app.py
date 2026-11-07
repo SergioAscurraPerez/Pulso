@@ -471,7 +471,12 @@ def propuesta_descarga(fuente: str = FUENTE_POR_DEFECTO, rechazadas: str | None 
     cohorte = obtener_cohorte(fuente)
     ruta = FUENTES[fuente][1]
     rechazos = leer_rechazadas(cohorte, rechazadas)
-    texto = _propuesta(ruta, ruta.stat().st_mtime, rechazos).texto
+    try:
+        if not _optimizar(ruta, ruta.stat().st_mtime, rechazos).factible:
+            raise ValueError("el optimizador no encontró una reprogramación válida")
+        texto = _propuesta(ruta, ruta.stat().st_mtime, rechazos).texto
+    except ValueError as error:  # p. ej. evaluaciones sin fecha: no hay propuesta que descargar
+        return PlainTextResponse(f"No se pudo generar la propuesta: {error}", status_code=422)
     if rechazos:
         nombres = ", ".join(f"{e.nombre} ({nombre_curso(e.curso)})" for e in cohorte.evaluaciones if e.id in rechazos)
         texto += "\n\n" + f"_Revisado por la coordinación: se mantienen en su fecha {nombres}._"
