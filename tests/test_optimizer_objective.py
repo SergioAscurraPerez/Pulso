@@ -73,3 +73,10 @@ def test_to_dict_es_serializable(resultado):
     d = json.loads(json.dumps(resultado.to_dict()))
     assert d["reduccion_pico_pct"] == resultado.reduccion_pico_pct
     assert d["evaluaciones_movidas"] == len(resultado.movimientos)
+
+
+def test_optimizacion_es_determinista():
+    """El mismo ciclo debe dar siempre las mismas evaluaciones movidas (local y Vercel)."""
+    cohorte = cargar_cohorte("data/cohorte.json")
+    resultados = {tuple(sorted((m.id, m.fecha_nueva) for m in optimizar(cohorte).movimientos)) for _ in range(5)}
+    assert len(resultados) == 1
