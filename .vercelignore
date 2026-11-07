@@ -1,0 +1,28 @@
+# Archivos que la CLI de Vercel NO debe subir al desplegar desde una carpeta local
+# (`vercel deploy`). Las claves van en Settings → Environment Variables del proyecto.
+
+# Secretos
+.env
+.env.*
+
+# Planificación (no se sube al repo ni a Vercel)
+*.xlsx
+~$*.xlsx
+
+# Entorno local de Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# IDE / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# No los usa la app desplegada (vercel.json ya los excluye de la función)
+tests/
+scripts/
+data/silabos/
