@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from src.extraction.llm import ClienteChat, config_llm, crear_cliente
 from src.extraction.pdf_reader import TextoSilabo
+from src.extraction.recorte import recortar_para_extraccion
 from src.models import SEMANAS_CICLO, Evaluacion, TipoEvaluacion
 
 MAX_INTENTOS = 3
@@ -158,6 +159,8 @@ def extraer_evaluaciones(
 ) -> ResultadoExtraccion:
     """Extrae las evaluaciones de un sílabo con el LLM, reintentando si la validación falla."""
     texto = silabo.texto if isinstance(silabo, TextoSilabo) else silabo
+    if (os.getenv("LLM_RECORTE") or "on").strip().lower() != "off":
+        texto, _ = recortar_para_extraccion(texto)  # ~90 % menos tokens; ante la duda manda el texto completo
     if cliente is None:
         config = config_llm()
         cliente = crear_cliente(config, timeout=120)
