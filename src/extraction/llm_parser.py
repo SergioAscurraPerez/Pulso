@@ -164,7 +164,8 @@ def extraer_evaluaciones(
     ]
     con_esquema = True
     errores: list[str] = []
-    for intento in range(1, max_intentos + 1):
+    intento = 0
+    while intento < max_intentos:
         try:
             respuesta = cliente.chat.completions.create(
                 model=modelo,
@@ -177,10 +178,13 @@ def extraer_evaluaciones(
         except Exception as error:  # noqa: BLE001
             mensaje = str(error).lower()
             if con_esquema and ("response_format" in mensaje or "json_schema" in mensaje):
-                con_esquema = False  # el modelo no soporta json_schema: probar con json_object
+                # El proveedor no acepta este json_schema (p. ej. Groq): se pasa a json_object.
+                # No cuenta como intento: con max_intentos=1 nunca se llegaba a pedir el JSON.
+                con_esquema = False
                 continue
             raise ErrorExtraccion(f"Falló la llamada al LLM: {error}") from error
 
+        intento += 1
         contenido = respuesta.choices[0].message.content or ""
         try:
             nombre_curso, evaluaciones, advertencias = validar_respuesta(contenido, curso)

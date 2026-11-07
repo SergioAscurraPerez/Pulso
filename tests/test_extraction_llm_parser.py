@@ -118,3 +118,24 @@ def test_limita_tokens_de_salida():
     cliente = ClienteStub(json.dumps(VALIDO))
     extraer_evaluaciones("s", cliente=cliente, modelo="m")
     assert 0 < cliente.llamadas[0]["max_tokens"] <= 8000
+
+
+def _sin_semana():
+    datos = json.loads(json.dumps(VALIDO))
+    for ev in datos["evaluaciones"][3:6]:
+        ev["semana"] = None
+    return json.dumps(datos)
+
+
+def test_secuencia_groq_400_luego_sin_semana_luego_corrige():
+    """Lo que pasó en producción: json_schema rechazado (400), JSON sin semanas y luego la corrección."""
+    cliente = ClienteStub(RuntimeError("Error code: 400 - json_schema not supported"), _sin_semana(), json.dumps(VALIDO))
+    r = extraer_evaluaciones("s", cliente=cliente, modelo="m", max_intentos=2)
+    assert len(r.evaluaciones) == 11 and len(cliente.llamadas) == 3
+    assert "corrigió" in " ".join(r.advertencias)
+
+
+def test_pasar_a_json_object_no_gasta_el_unico_intento():
+    cliente = ClienteStub(RuntimeError("response_format json_schema is not supported"), json.dumps(VALIDO))
+    r = extraer_evaluaciones("s", cliente=cliente, modelo="m", max_intentos=1)
+    assert len(r.evaluaciones) == 11
