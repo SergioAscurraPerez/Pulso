@@ -1,0 +1,85 @@
+{
+  "archivo": "ingenieria-de-software-i-2025-II.pdf",
+  "curso": "INGENIERIA DE SOFTWARE I",
+  "extraido_en": "2026-11-07T19:48:18+00:00",
+  "intentos": 1,
+  "advertencias": [
+    "Semana estimada (el sílabo no la indica): Práctica 1 (P1) → semana 4",
+    "Semana estimada (el sílabo no la indica): Práctica 2 (P2) → semana 12",
+    "Semana estimada (el sílabo no la indica): Laboratorio 1 (Lb1) → semana 5",
+    "Semana estimada (el sílabo no la indica): Laboratorio 2 (Lb2) → semana 10",
+    "Semana estimada (el sílabo no la indica): Laboratorio 3 (Lb3) → semana 14"
+  ],
+  "evaluaciones": [
+    {
+      "id": "ingenieria-de-software-i--examen-parcial",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Examen parcial",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 33.33,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--examen-final",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Examen final",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 33.33,
+      "semana": 16,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--practica-1-p1",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Práctica 1 (P1)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 10.0,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--practica-2-p2",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Práctica 2 (P2)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 10.0,
+      "semana": 12,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--laboratorio-1-lb1",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Laboratorio 1 (Lb1)",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.44,
+      "semana": 5,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--laboratorio-2-lb2",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Laboratorio 2 (Lb2)",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.44,
+      "semana": 10,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-i--laboratorio-3-lb3",
+      "curso": "INGENIERIA DE SOFTWARE I",
+      "nombre": "Laboratorio 3 (Lb3)",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.46,
+      "semana": 14,
+      "bloqueada": false
+    }
+  ]
+}

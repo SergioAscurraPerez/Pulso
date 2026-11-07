@@ -50,14 +50,16 @@ def test_el_error_del_llm_no_muestra_urls_de_la_cuenta(tmp_path, monkeypatch):
         data={"ciclo": "2026-I", "fecha_inicio": "2026-03-02"},
     )
     assert respuesta.status_code == 422
-    assert "Error code: 402" in respuesta.text  # el motivo se ve…
-    assert "openrouter.ai" not in respuesta.text  # …pero no la URL de la cuenta
+    assert "La lectura con IA no está disponible en este momento" in respuesta.text
+    for tecnico in ("Error code", "402", "openrouter.ai", "credits"):
+        assert tecnico not in respuesta.text
 
 
-def test_mensaje_para_usuario_quita_urls_y_acota():
-    assert "https://" not in app_modulo.mensaje_para_usuario(ERROR_402)
-    assert app_modulo.mensaje_para_usuario("a" * 500).endswith("…")
-    assert len(app_modulo.mensaje_para_usuario("a" * 500)) == 240
+def test_mensaje_para_usuario_traduce_errores_tecnicos():
+    m = app_modulo.mensaje_para_usuario
+    assert m(ERROR_402) == "La lectura con IA no está disponible en este momento. Vuelve a intentarlo más tarde."
+    assert "sin fecha" in m("'curso--p1' no tiene fecha; normalízala antes de optimizar (PUL-06).")
+    assert m("Traceback (most recent call last): KeyError: 'x'") == "No se pudo completar esta acción. Vuelve a intentarlo."
 
 
 def test_otras_fuentes_desconocidas_siguen_dando_404():
@@ -89,6 +91,7 @@ def test_descargar_propuesta_sin_optimizacion_posible_no_da_500(tmp_path, monkey
     respuesta = cliente.get("/antes-despues/propuesta.md", params={"fuente": "cohorte"})
     assert respuesta.status_code == 422
     assert "No se pudo generar la propuesta" in respuesta.text
+    assert "PUL-06" not in respuesta.text and "normalízala" not in respuesta.text
 
 
 def test_kpi_de_rechazos_concuerda_en_singular_y_plural():

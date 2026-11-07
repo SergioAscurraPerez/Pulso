@@ -37,7 +37,9 @@ def test_json_invalido_da_500_con_detalle(tmp_path, monkeypatch):
     monkeypatch.setitem(FUENTES, "cohorte", ("Cohorte", ruta))
     respuesta = cliente.get("/", params={"fuente": "cohorte"})
     assert respuesta.status_code == 500
-    assert "no cumple el esquema" in respuesta.json()["detail"]
+    # Página clara, sin el detalle técnico de la validación.
+    assert "Algo salió mal" in respuesta.text
+    assert "no cumple el esquema" not in respuesta.text and "validation error" not in respuesta.text
 
 
 def test_archivos_estaticos():

@@ -81,5 +81,6 @@ def test_cohorte_que_no_se_puede_optimizar_avisa_sin_romper_la_pantalla(tmp_path
     monkeypatch.setitem(app_modulo.FUENTES, "cohorte", ("Cohorte", ruta))
     respuesta = cliente.get("/simulacion", params={"fuente": "cohorte"})
     assert respuesta.status_code == 200
-    assert "no tiene fecha" in respuesta.text
+    assert "Hay evaluaciones sin fecha" in respuesta.text
+    assert "PUL-06" not in respuesta.text
     assert "/antes-despues/propuesta" not in respuesta.text  # sin optimización no hay propuesta que pedir

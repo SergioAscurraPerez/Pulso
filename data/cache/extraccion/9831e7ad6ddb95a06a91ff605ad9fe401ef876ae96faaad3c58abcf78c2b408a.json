@@ -1,0 +1,81 @@
+{
+  "archivo": "teoria-general-de-sistemas-2025-II.pdf",
+  "curso": "TEORÍA GENERAL DE SISTEMAS",
+  "extraido_en": "2026-11-07T19:52:07+00:00",
+  "intentos": 1,
+  "advertencias": [
+    "Semana estimada (el sílabo no la indica): Trabajo 1 → semana 5"
+  ],
+  "evaluaciones": [
+    {
+      "id": "teoria-general-de-sistemas--primera-practica-calificada",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Primera Practica Calificada",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 3,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--trabajo-1",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Trabajo 1",
+      "tipo": "tarea",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 5,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--segunda-practica-calificada",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Segunda Práctica Calificada",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 6,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--examen-parcial",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Examen Parcial",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 7,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--tercera-practica-calificada",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Tercera Práctica Calificada",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 10,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--cuarta-practica-calificada",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Cuarta Práctica Calificada",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 13,
+      "bloqueada": false
+    },
+    {
+      "id": "teoria-general-de-sistemas--examen-final",
+      "curso": "TEORÍA GENERAL DE SISTEMAS",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 16,
+      "bloqueada": false
+    }
+  ]
+}

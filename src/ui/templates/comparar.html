@@ -15,11 +15,10 @@
 </section>
 
 {% if filas | length < 2 %}
-  <section class="panel aviso">
-    <h2>Por ahora hay {{ filas | length }} ciclo extraído</h2>
-    <p>Para comparar, extrae los sílabos de otros ciclos (una sola vez; queda en caché) y vuelve a desplegar:</p>
-    <pre class="comando">python scripts/procesar_cohorte.py data/silabos/ciclo-06 --ciclo 2025-II --inicio AAAA-MM-DD --salida data/cohortes/ciclo-06.json</pre>
-    <p class="detalle">Cada archivo <code>data/cohortes/ciclo-NN.json</code> aparece aquí y en el selector de datos.</p>
+  {# Mensaje para quien usa la app: cómo agregar ciclos está en data/cohortes/README.md. #}
+  <section class="panel">
+    <h2>Por ahora solo hay un ciclo procesado</h2>
+    <p class="detalle">Cuando se procesen los sílabos de otros ciclos de la carrera, aparecerán aquí para compararlos semana a semana.</p>
   </section>
 {% endif %}
 

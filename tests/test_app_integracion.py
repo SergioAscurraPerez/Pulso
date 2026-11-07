@@ -84,7 +84,8 @@ def test_extension_en_mayusculas_tambien_se_procesa(tmp_app):
 def test_pdf_nuevo_sin_llm_da_error_claro(tmp_app, sin_llm):
     respuesta = _subir([("nuevo.pdf", b"%PDF-1.4 a"), ("otro.pdf", b"%PDF-1.4 b")])
     assert respuesta.status_code == 422
-    assert respuesta.text.count("no está en la caché y el LLM no está configurado") == 2
+    assert respuesta.text.count("Es un sílabo nuevo y la lectura con IA no está disponible") == 2
+    assert "LLM_API_KEY" not in respuesta.text
     assert not (tmp_app / "cohorte-subida.json").exists()
 
 
@@ -110,7 +111,7 @@ def test_sin_tiempo_no_empieza_otra_extraccion(tmp_app, monkeypatch):
     monkeypatch.setattr(app_modulo, "_extraer_en_linea", lambda pdf: pytest.fail("no debía extraer"))
     respuesta = _subir([("nuevo.pdf", b"%PDF-1.4 nuevo"), (SILABOS[0].name, SILABOS[0].read_bytes())])
     assert respuesta.status_code == 200  # el sílabo en caché alcanza para armar la cohorte
-    assert "no alcanzó el tiempo de esta subida" in respuesta.text
+    assert "No alcanzó el tiempo para leerlo" in respuesta.text
 
 
 @pytest.mark.parametrize(

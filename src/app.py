@@ -18,8 +18,11 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
+from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup, escape
 from pydantic import ValidationError
@@ -190,6 +193,38 @@ def renderizar(request: Request, plantilla: str, fuente: str, status_code: int =
         },
         status_code=status_code,
     )
+
+
+_PAGINAS_ERROR = {
+    404: ("No encontramos lo que buscas", "El enlace no es válido o esos datos ya no están disponibles."),
+    422: ("Ese enlace no es válido", "Algún dato del enlace no es correcto. Vuelve a la pantalla anterior e inténtalo de nuevo."),
+    500: ("Algo salió mal", "No pudimos cargar estos datos. Vuelve a intentarlo en unos minutos."),
+}
+
+
+def _pagina_error(request: Request, codigo: int) -> HTMLResponse:
+    titulo, mensaje = _PAGINAS_ERROR.get(codigo, _PAGINAS_ERROR[500])
+    return renderizar(
+        request, "aviso.html", FUENTE_POR_DEFECTO, status_code=codigo,
+        titulo=titulo, mensaje=mensaje, enlace="/", texto_enlace="Ir al inicio",
+    )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def error_http(request: Request, error: StarletteHTTPException):
+    """Página clara en vez del JSON de FastAPI. La API JSON (/api/…) y /static responden como siempre."""
+    if request.url.path.startswith(("/api", "/static")):
+        return await http_exception_handler(request, error)
+    logger.warning("HTTP %s en %s: %s", error.status_code, request.url.path, error.detail)
+    return _pagina_error(request, error.status_code)
+
+
+@app.exception_handler(RequestValidationError)
+async def error_validacion(request: Request, error: RequestValidationError):
+    if request.url.path.startswith("/api"):
+        return await request_validation_exception_handler(request, error)
+    logger.warning("Parámetros inválidos en %s: %s", request.url.path, error.errors())
+    return _pagina_error(request, 422)
 
 
 @app.exception_handler(CohorteSubidaNoDisponible)
@@ -369,9 +404,10 @@ def antes_despues(
     try:
         resultado = _optimizar(ruta, ruta.stat().st_mtime, rechazos)
     except ValueError as error:  # p. ej. evaluaciones sin fecha: el optimizador necesita fechas (PUL-06)
-        return renderizar(request, "antes_despues.html", fuente, cohorte=cohorte, error=str(error))
+        return renderizar(request, "antes_despues.html", fuente, cohorte=cohorte, error=mensaje_para_usuario(str(error)))
     if not resultado.factible:
-        error = f"El optimizador no encontró una reprogramación válida (estado: {resultado.estado})."
+        logger.warning("Optimizador sin solución para %s: %s", fuente, resultado.estado)
+        error = "No se encontró una reprogramación válida con estas restricciones."
         return renderizar(request, "antes_despues.html", fuente, cohorte=cohorte, error=error)
     antes = construir_calendario(cohorte)
     # Misma escala de color en ambos calendarios para que la comparación sea justa.
@@ -522,7 +558,7 @@ def propuesta(
     y la pantalla se quedaría en "Redactando la propuesta…".
     """
     if fuente not in fuentes_disponibles():
-        return templates.TemplateResponse(request, "_propuesta.html", {"error": "la cohorte ya no está disponible"})
+        return templates.TemplateResponse(request, "_propuesta.html", {"error": "Los datos de esta cohorte ya no están disponibles."})
     ruta = FUENTES[fuente][1]
     rechazos = leer_rechazadas(obtener_cohorte(fuente), rechazadas)
     try:
@@ -530,7 +566,7 @@ def propuesta(
             raise ValueError("el optimizador no encontró una reprogramación válida")
         contexto = {"propuesta": _propuesta(ruta, ruta.stat().st_mtime, rechazos)}
     except ValueError as error:
-        contexto = {"error": str(error)}
+        contexto = {"error": mensaje_para_usuario(str(error))}
     contexto.update(fuente=fuente, rechazadas=rechazos, aprobada=aprobada)
     return templates.TemplateResponse(request, "_propuesta.html", contexto)
 
@@ -546,7 +582,7 @@ def propuesta_descarga(fuente: str = FUENTE_POR_DEFECTO, rechazadas: str | None 
             raise ValueError("el optimizador no encontró una reprogramación válida")
         texto = _propuesta(ruta, ruta.stat().st_mtime, rechazos).texto
     except ValueError as error:  # p. ej. evaluaciones sin fecha: no hay propuesta que descargar
-        return PlainTextResponse(f"No se pudo generar la propuesta: {error}", status_code=422)
+        return PlainTextResponse(f"No se pudo generar la propuesta. {mensaje_para_usuario(str(error))}", status_code=422)
     if rechazos:
         nombres = ", ".join(f"{e.nombre} ({nombre_curso(e.curso)})" for e in cohorte.evaluaciones if e.id in rechazos)
         texto += "\n\n" + f"_Revisado por la coordinación: se mantienen en su fecha {nombres}._"
@@ -566,13 +602,29 @@ def _extraer_en_linea(pdf: Path) -> ResultadoExtraccion:
     return extraer_evaluaciones(leer_pdf(pdf), cliente=cliente, modelo=config.modelo, max_intentos=1)
 
 
-def mensaje_para_usuario(error: str, limite: int = 240) -> str:
-    """Error apto para mostrar en la página pública: sin URLs ni datos de la cuenta del proveedor, y acotado.
+# Errores técnicos → mensaje para quien usa la app. Se busca por texto (en minúsculas) en el error.
+_MENSAJES_ERROR: list[tuple[tuple[str, ...], str]] = [
+    (("402", "credits", "saldo"), "La lectura con IA no está disponible en este momento. Vuelve a intentarlo más tarde."),
+    (("no está en la caché",), "Es un sílabo nuevo y la lectura con IA no está disponible en este momento."),
+    (("no alcanzó el tiempo",), "No alcanzó el tiempo para leerlo. Vuelve a subirlo: lo ya leído quedó guardado."),
+    (("timeout", "timed out", "429", "rate limit"), "La IA tardó demasiado en responder. Vuelve a intentarlo en unos minutos."),
+    (("ningún sílabo pudo extraerse",), "No se pudo leer ninguno de los sílabos."),
+    (("ids de evaluación repetidos",), "Hay dos sílabos del mismo curso: sube uno por curso."),
+    (("no tiene fecha",), "Hay evaluaciones sin fecha, así que no se puede optimizar esta cohorte."),
+    (("reprogramación válida", "infeasible"), "No se encontró una reprogramación válida con estas restricciones."),
+    (("ya no está disponible",), "Los datos de esta cohorte ya no están disponibles."),
+]
+_MENSAJE_GENERICO = "No se pudo completar esta acción. Vuelve a intentarlo."
 
-    El detalle completo queda en los logs del servidor (Vercel → Logs).
+
+def mensaje_para_usuario(error: str) -> str:
+    """Mensaje claro para la página pública: sin códigos, trazas, URLs ni nombres internos.
+
+    El error completo queda en los logs del servidor (Vercel → Logs).
     """
-    limpio = re.sub(r"\s*\S*https?://\S+", "", error).strip()
-    return limpio if len(limpio) <= limite else limpio[: limite - 1].rstrip() + "…"
+    logger.warning("Error mostrado al usuario como mensaje claro: %s", error)
+    texto = error.lower()
+    return next((mensaje for claves, mensaje in _MENSAJES_ERROR if any(c in texto for c in claves)), _MENSAJE_GENERICO)
 
 
 def _formulario_por_defecto() -> dict:
@@ -601,9 +653,9 @@ def _pasos_simulacion(fuente: str) -> dict:
         if resultado.factible:
             contexto["resultado"] = resultado
         else:
-            contexto["error_optimizar"] = f"El optimizador no encontró una reprogramación válida (estado: {resultado.estado})."
+            contexto["error_optimizar"] = "No se encontró una reprogramación válida con estas restricciones."
     except ValueError as error:  # p. ej. evaluaciones sin fecha
-        contexto["error_optimizar"] = str(error)
+        contexto["error_optimizar"] = mensaje_para_usuario(str(error))
     # Caso para el simulador docente: una evaluación movible que hoy está en una colisión, de preferencia
     # una para la que el simulador encuentra una fecha mejor (los exámenes no salen de su semana de exámenes).
     casos = [(e, c.fechas[e.id]) for c in calendario.colisiones for e in c.evaluaciones if not e.bloqueada]
@@ -643,8 +695,7 @@ def simulacion_subir(
     def rechazar(mensaje: str) -> HTMLResponse:
         for reporte in reportes:  # los errores del LLM pueden traer URLs de la cuenta del proveedor
             if reporte.error:
-                logger.warning("Sílabo %s: %s", reporte.archivo, reporte.error)
-                reporte.error = mensaje_para_usuario(reporte.error)
+                reporte.error = mensaje_para_usuario(f"{reporte.archivo}: {reporte.error}")
         return renderizar(
             request, "simulacion.html", FUENTE_POR_DEFECTO, status_code=422, formulario=formulario, error=mensaje, reportes=reportes
         )
@@ -690,14 +741,12 @@ def simulacion_subir(
                 al_procesar=reportes.append,
             )
         except (RuntimeError, ValueError) as error:  # ningún sílabo se pudo extraer, o la cohorte no valida
-            logger.warning("Subida rechazada: %s", error)
             return rechazar(mensaje_para_usuario(str(error)))
 
     guardar_cohorte(lote.cohorte, FUENTES["subida"][1])
     for reporte in reportes:  # un sílabo pudo fallar aunque el resto armó la cohorte
         if reporte.error:
-            logger.warning("Sílabo %s: %s", reporte.archivo, reporte.error)
-            reporte.error = mensaje_para_usuario(reporte.error)
+            reporte.error = mensaje_para_usuario(f"{reporte.archivo}: {reporte.error}")
     return renderizar(
         request,
         "simulacion.html",
