@@ -6,8 +6,8 @@ Cada evaluación tiene una variable entera: el día del ciclo en que se toma
 Restricciones:
 - evaluaciones `bloqueada` → se quedan en su fecha;
 - solo días hábiles (lunes a viernes por defecto), nunca feriados;
-- semana de exámenes: los parciales/finales que caen en una semana de exámenes no salen de ella,
-  y las demás evaluaciones no pueden entrar a una semana de exámenes (si ya estaban, pueden quedarse);
+- periodos de exámenes (8 · 16–17): un parcial/final solo se mueve dentro de su periodo y las demás
+  evaluaciones no entran a un periodo de exámenes (regla compartida: `semana_permitida`);
 - dentro de un curso se respeta el orden original (PC1 antes que PC2…);
 - todas las fechas dentro del ciclo.
 
@@ -23,16 +23,15 @@ from datetime import date, timedelta
 
 from ortools.sat.python import cp_model
 
-from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, TipoEvaluacion
-
-TIPOS_EXAMEN = {TipoEvaluacion.EXAMEN_PARCIAL, TipoEvaluacion.EXAMEN_FINAL}
+from src.engine.load_index import SEMANAS_EXAMENES, semana_permitida
+from src.models import SEMANAS_CICLO, Cohorte, Evaluacion
 
 
 @dataclass
 class ConfigOptimizador:
     ventana_dias: int = 7  # k: cuánto se puede mover una evaluación hacia adelante o atrás
     feriados: set[date] = field(default_factory=set)
-    semanas_examenes: set[int] = field(default_factory=lambda: {8, 16})
+    semanas_examenes: set[int] = field(default_factory=lambda: set(SEMANAS_EXAMENES))
     dias_habiles: set[int] = field(default_factory=lambda: {0, 1, 2, 3, 4})  # weekday(): lun=0 … vie=4
     tiempo_max_s: float = 10.0
 
@@ -75,16 +74,13 @@ def dias_candidatos(cohorte: Cohorte, ev: Evaluacion, config: ConfigOptimizador)
         return [orig]
     ultimo = SEMANAS_CICLO * 7 - 1
     semana_orig = orig // 7 + 1
-    es_examen = ev.tipo in TIPOS_EXAMEN
     candidatos = []
     for d in range(max(0, orig - config.ventana_dias), min(ultimo, orig + config.ventana_dias) + 1):
         fecha = cohorte.fecha_inicio + timedelta(days=d)
         semana = d // 7 + 1
         if fecha.weekday() not in config.dias_habiles or fecha in config.feriados:
             continue
-        if es_examen and semana_orig in config.semanas_examenes and semana != semana_orig:
-            continue
-        if not es_examen and semana in config.semanas_examenes and semana != semana_orig:
+        if not semana_permitida(ev, semana_orig, semana, config.semanas_examenes):
             continue
         candidatos.append(d)
     return candidatos or [orig]  # sin alternativas válidas: se queda donde está
