@@ -16,11 +16,8 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 
 from src.engine.collisions import Colision, detectar_colisiones
-from src.engine.load_index import carga_semanal, semana_de
-from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, GrupoMatricula, TipoEvaluacion
-
-TIPOS_EXAMEN = {TipoEvaluacion.EXAMEN_PARCIAL, TipoEvaluacion.EXAMEN_FINAL}
-SEMANAS_EXAMENES = {8, 16}
+from src.engine.load_index import SEMANAS_EXAMENES, carga_semanal, semana_de, semana_permitida
+from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, GrupoMatricula
 
 
 @dataclass
@@ -106,27 +103,24 @@ def fechas_alternativas(
     fecha: date,
     ventana_dias: int = 7,
     feriados: set[date] | None = None,
-    semanas_examenes: set[int] | None = None,
+    semanas_examenes: set[int] | frozenset[int] | None = None,
 ) -> list[date]:
     """Días a los que se podría mover la evaluación. Usa las mismas reglas que el modelo CP-SAT:
     - días hábiles (lun–vie), sin feriados, dentro de ±`ventana_dias` y dentro del ciclo;
-    - un parcial/final que cae en una semana de exámenes no sale de ella;
-    - otro tipo de evaluación no entra a una semana de exámenes.
+    - un parcial/final solo se mueve dentro de su periodo de exámenes (8 · 16–17);
+    - otro tipo de evaluación no entra a un periodo de exámenes.
     """
     feriados = feriados or set()
     semanas_examenes = SEMANAS_EXAMENES if semanas_examenes is None else semanas_examenes
     fin_ciclo = cohorte.fecha_inicio + timedelta(days=SEMANAS_CICLO * 7 - 1)
     semana_actual = semana_de(evaluacion, cohorte.fecha_inicio, fecha)
-    es_examen = evaluacion.tipo in TIPOS_EXAMEN
     alternativas = []
     for d in range(-ventana_dias, ventana_dias + 1):
         f = fecha + timedelta(days=d)
         if f == fecha or not cohorte.fecha_inicio <= f <= fin_ciclo or f.weekday() >= 5 or f in feriados:
             continue
         semana = semana_de(evaluacion, cohorte.fecha_inicio, f)
-        if es_examen and semana_actual in semanas_examenes and semana != semana_actual:
-            continue
-        if not es_examen and semana in semanas_examenes and semana != semana_actual:
+        if not semana_permitida(evaluacion, semana_actual, semana, semanas_examenes):
             continue
         alternativas.append(f)
     return alternativas
@@ -139,7 +133,7 @@ def simular(
     *,
     ventana_dias: int = 7,
     feriados: set[date] | None = None,
-    semanas_examenes: set[int] | None = None,
+    semanas_examenes: set[int] | frozenset[int] | None = None,
 ) -> ResultadoSimulacion:
     """Evalúa `fecha` y busca la mejor alternativa cercana.
 
