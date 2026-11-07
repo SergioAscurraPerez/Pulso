@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titulo %}Cohorte{% endblock %}
+{% block contenido %}
+<section class="cabecera">
+  <div>
+    <h1>{{ cohorte.nombre }}</h1>
+    <p class="detalle">Ciclo {{ cohorte.ciclo }} · inicia el {{ cohorte.fecha_inicio.strftime('%d/%m/%Y') }}
+      · {{ cohorte.cursos | length }} cursos · {{ evaluaciones | length }} evaluaciones
+      {% if cohorte.total_estudiantes %} · {{ cohorte.total_estudiantes }} estudiantes{% endif %}</p>
+  </div>
+  <form class="selector" method="get" action="/">
+    <label for="fuente">Datos</label>
+    <select id="fuente" name="fuente" onchange="this.form.submit()">
+      {% for clave, etiqueta in fuentes.items() %}
+        <option value="{{ clave }}" {% if clave == fuente %}selected{% endif %}>{{ etiqueta }}</option>
+      {% endfor %}
+    </select>
+    <noscript><button type="submit">Cargar</button></noscript>
+  </form>
+</section>
+
+<table class="tabla">
+  <thead>
+    <tr><th>Semana</th><th>Fecha</th><th>Curso</th><th>Evaluación</th><th>Tipo</th><th class="num">Peso</th><th>Bloqueada</th></tr>
+  </thead>
+  <tbody>
+    {% for e in evaluaciones %}
+      <tr>
+        <td>{{ e.semana or "—" }}</td>
+        <td>{{ e.fecha.strftime('%d/%m/%Y') if e.fecha else "—" }}</td>
+        <td>{{ e.curso }}</td>
+        <td>{{ e.nombre }}</td>
+        <td>{{ e.tipo | etiqueta_tipo }}</td>
+        <td class="num">{{ '%g' % e.peso }} %</td>
+        <td>{{ "Sí" if e.bloqueada else "No" }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
