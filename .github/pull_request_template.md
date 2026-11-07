@@ -19,7 +19,7 @@ PUL-XX — <nombre de la tarea del backlog>
 
 ## Checklist
 - [ ] `git pull origin main` hecho y sin conflictos
-- [ ] La app / el código corre localmente
+- [ ] La app / el código corre localmente (y el preview de Vercel funciona)
 - [ ] Solo toqué la carpeta de mi módulo (o lo avisé)
 - [ ] Sin `.env`, API keys ni el Excel de planificación
 - [ ] Commits en formato Conventional Commits

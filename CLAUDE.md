@@ -2,7 +2,17 @@
 
 PULSO es un radar predictivo de sobrecarga académica (Hackathon ENEISOFT XVI, sub-eje Bienestar).
 Extrae evaluaciones de sílabos PDF con IA, calcula la carga semanal por cohorte, detecta colisiones
-y propone una reprogramación óptima con un solver CP-SAT. Stack: Python, Pydantic, OR-Tools, Streamlit, pdfplumber, SDK de LLM.
+y propone una reprogramación óptima con un solver CP-SAT. Stack: Python, Pydantic, OR-Tools, FastAPI + Jinja2/HTMX, pdfplumber, SDK de LLM.
+
+## Despliegue: Vercel (monolito)
+
+- Toda la app (UI + extracción + motor + optimizador) es **un solo proyecto FastAPI** desplegado en Vercel como una única Vercel Function.
+- Entrypoint: `src/app.py` con una instancia `app = FastAPI()` (Vercel la detecta automáticamente). La UI se sirve con plantillas Jinja2 y archivos estáticos desde `src/ui/` (`templates/`, `static/`).
+- No usar Streamlit: no se puede desplegar en Vercel.
+- Local: `uvicorn src.app:app --reload`. Configuración en `vercel.json` (p. ej. `maxDuration` si el solver o el LLM tardan).
+- El filesystem de Vercel es de solo lectura (salvo `/tmp`): `data/cohorte.json` se genera antes y se commitea; la demo no depende de llamar al LLM en vivo.
+- Las peticiones a una Vercel Function tienen un límite de tamaño de body (~4.5 MB): los PDFs subidos deben ser pequeños.
+- La API key del LLM va como variable de entorno en el proyecto de Vercel, nunca en el código.
 
 ## Planificación: `PULSO_Product_Backlog.xlsx`
 
@@ -41,7 +51,7 @@ Grafo de dependencias (referencia rápida; si difiere del Excel, manda el Excel)
 | PUL-11 modelo CP-SAT | B | feat/optimizer-cpsat-model | PUL-09 |
 | PUL-12 función objetivo + diff | B | feat/optimizer-objective | PUL-11 |
 | PUL-13 simulador docente | B | feat/optimizer-simulator | PUL-10 |
-| PUL-14 layout Streamlit | C | feat/ui-base | PUL-02 |
+| PUL-14 layout FastAPI + deploy Vercel | C | feat/ui-base | PUL-02 |
 | PUL-15 vista carga semanal | C | feat/ui-load-view | PUL-14 |
 | PUL-16 vista antes/después | C | feat/ui-before-after | PUL-14 |
 | PUL-17 integración real | C | feat/ui-integration | PUL-07, PUL-12 |
@@ -62,7 +72,9 @@ data/mock/evaluaciones_mock.json
 src/models.py            esquema Evaluacion (compartido)
 src/extraction/          A
 src/engine/  src/optimizer/   B
-src/ui/app.py            C
+src/app.py               C (entrypoint FastAPI / Vercel)
+src/ui/                  C (templates/, static/)
+vercel.json              C
 tests/
 ```
 
@@ -112,7 +124,7 @@ PUL-XX — <nombre de la tarea del backlog>
 
 ## Checklist
 - [ ] `git pull origin main` hecho y sin conflictos
-- [ ] La app / el código corre localmente
+- [ ] La app / el código corre localmente (y el preview de Vercel funciona)
 - [ ] Solo toqué la carpeta de mi módulo (o lo avisé)
 - [ ] Sin `.env`, API keys ni el Excel de planificación
 - [ ] Commits en formato Conventional Commits
