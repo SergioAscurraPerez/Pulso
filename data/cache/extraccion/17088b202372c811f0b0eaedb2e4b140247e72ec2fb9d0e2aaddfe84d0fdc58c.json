@@ -1,0 +1,31 @@
+{
+  "archivo": "discapacidad-e-inclusion-2026-I.pdf",
+  "curso": "DISCAPACIDAD E INCLUSIÓN",
+  "extraido_en": "2026-11-07T15:35:00+00:00",
+  "intentos": null,
+  "advertencias": [
+    "Extraído con google/gemini-3.8-flash (PUL-05) y revisado a mano."
+  ],
+  "evaluaciones": [
+    {
+      "id": "discapacidad-e-inclusion--examen-parcial",
+      "curso": "DISCAPACIDAD E INCLUSIÓN",
+      "nombre": "Examen Parcial",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 50.0,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "discapacidad-e-inclusion--examen-final",
+      "curso": "DISCAPACIDAD E INCLUSIÓN",
+      "nombre": "Examen Final",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 50.0,
+      "semana": 16,
+      "bloqueada": false
+    }
+  ]
+}

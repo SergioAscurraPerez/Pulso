@@ -1,0 +1,121 @@
+{
+  "archivo": "ingenieria-de-software-ii-2026-I.pdf",
+  "curso": "INGENIERIA DE SOFTWARE II",
+  "extraido_en": "2026-11-07T15:35:00+00:00",
+  "intentos": null,
+  "advertencias": [
+    "Extraído con google/gemini-3.8-flash (PUL-05) y revisado a mano."
+  ],
+  "evaluaciones": [
+    {
+      "id": "ingenieria-de-software-ii--evaluacion-no-1-p1",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Evaluación No. 1 (P1)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--primer-avance-de-laboratorio-lb1",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Primer avance de Laboratorio (Lb1)",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--evaluacion-no-2-p2",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Evaluación No. 2 (P2)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 7,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--examen-parcial-ep",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Examen Parcial (EP)",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--segundo-avance-de-laboratorio-lb2",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Segundo avance de Laboratorio (Lb2)",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 9,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--evaluacion-no-3-p3",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Evaluación No. 3 (P3)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 11,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--evaluacion-no-4-p4",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Evaluación No. 4 (P4)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 13,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--tercer-avance-de-laboratorio-lb3",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Tercer avance de Laboratorio (Lb3)",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 14,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--trabajo-w1",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Trabajo (W1)",
+      "tipo": "proyecto",
+      "fecha": null,
+      "peso": 16.67,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--cuarto-avance-de-laboratorio-lb4",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Cuarto avance de Laboratorio (Lb4)",
+      "tipo": "laboratorio",
+      "fecha": null,
+      "peso": 4.17,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "id": "ingenieria-de-software-ii--examen-final-ef",
+      "curso": "INGENIERIA DE SOFTWARE II",
+      "nombre": "Examen Final (EF)",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 16,
+      "bloqueada": false
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "archivo": "arquitectura-de-software-para-si-2026-I.pdf",
+  "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
+  "extraido_en": "2026-11-07T15:35:00+00:00",
+  "intentos": null,
+  "advertencias": [
+    "Extraído con google/gemini-3.8-flash (PUL-05) y revisado a mano."
+  ],
+  "evaluaciones": [
+    {
+      "id": "arquitectura-de-software-para-sistemas-de-informacion--examen-parcial",
+      "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
+      "nombre": "Examen Parcial",
+      "tipo": "examen_parcial",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 8,
+      "bloqueada": false
+    },
+    {
+      "id": "arquitectura-de-software-para-sistemas-de-informacion--examen-final",
+      "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
+      "nombre": "Examen final",
+      "tipo": "examen_final",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 16,
+      "bloqueada": false
+    },
+    {
+      "id": "arquitectura-de-software-para-sistemas-de-informacion--trabajo-w1",
+      "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
+      "nombre": "Trabajo (W1)",
+      "tipo": "proyecto",
+      "fecha": null,
+      "peso": 25.0,
+      "semana": 15,
+      "bloqueada": false
+    },
+    {
+      "id": "arquitectura-de-software-para-sistemas-de-informacion--evaluacion-1-p1",
+      "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
+      "nombre": "Evaluación 1 (P1)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 4,
+      "bloqueada": false
+    },
+    {
+      "id": "arquitectura-de-software-para-sistemas-de-informacion--evaluacion-2-p2",
+      "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
+      "nombre": "Evaluación 2 (P2)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 7,
+      "bloqueada": false
+    },
+    {
+      "id": "arquitectura-de-software-para-sistemas-de-informacion--evaluacion-3-p3",
+      "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
+      "nombre": "Evaluación 3 (P3)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 11,
+      "bloqueada": false
+    },
+    {
+      "id": "arquitectura-de-software-para-sistemas-de-informacion--evaluacion-4-p4",
+      "curso": "ARQUITECTURA DE SOFTWARE PARA SISTEMAS DE INFORMACIÓN",
+      "nombre": "Evaluación 4 (P4)",
+      "tipo": "practica_calificada",
+      "fecha": null,
+      "peso": 6.25,
+      "semana": 14,
+      "bloqueada": false
+    }
+  ]
+}

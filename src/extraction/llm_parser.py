@@ -10,6 +10,7 @@ Recibe el texto de PUL-04 y devuelve una lista de `Evaluacion` validada con Pyda
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass, field
 
@@ -21,8 +22,23 @@ from src.models import SEMANAS_CICLO, Evaluacion, TipoEvaluacion
 
 MAX_INTENTOS = 3
 # Tope de tokens de salida (incluye el razonamiento del modelo). Sin tope, OpenRouter reserva el
-# máximo del modelo y una key con poco saldo rechaza la llamada (402).
+# máximo del modelo y una key con poco saldo rechaza la llamada (402). Los modelos gratuitos que
+# razonan mucho (p. ej. nvidia/nemotron-3.5-super-vl:free) necesitan ~20000: LLM_MAX_TOKENS=20000.
 MAX_TOKENS = 6000
+
+
+def _max_tokens() -> int:
+    return int(os.getenv("LLM_MAX_TOKENS") or MAX_TOKENS)
+
+
+def _razonamiento() -> dict:
+    """LLM_REASONING: low (por defecto) | medium | high | off | auto (no enviar nada al proveedor)."""
+    valor = (os.getenv("LLM_REASONING") or "low").strip().lower()
+    if valor == "auto":
+        return {}
+    if valor == "off":
+        return {"reasoning": {"enabled": False}}
+    return {"reasoning": {"effort": valor}}
 TOLERANCIA_PESOS = 5.0  # la suma de pesos debe estar en 100 ± 5
 
 
@@ -158,10 +174,10 @@ def extraer_evaluaciones(
             respuesta = cliente.chat.completions.create(
                 model=modelo,
                 temperature=0,
-                max_tokens=MAX_TOKENS,
+                max_tokens=_max_tokens(),
                 messages=mensajes,
                 response_format=_formato_respuesta(con_esquema),
-                extra_body={"reasoning": {"effort": "low"}},
+                extra_body=_razonamiento(),
             )
         except Exception as error:  # noqa: BLE001
             mensaje = str(error).lower()
