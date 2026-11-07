@@ -273,5 +273,45 @@
       "semana": 15,
       "bloqueada": false
     }
+  ],
+  "grupos": [
+    {
+      "cursos": [
+        "Ingeniería de Software II",
+        "Base de Datos II",
+        "Sistemas Operativos",
+        "Investigación Operativa",
+        "Redes de Computadoras",
+        "Ética y Deontología"
+      ],
+      "cantidad": 70
+    },
+    {
+      "cursos": [
+        "Ingeniería de Software II",
+        "Base de Datos II",
+        "Sistemas Operativos",
+        "Investigación Operativa",
+        "Ética y Deontología"
+      ],
+      "cantidad": 20
+    },
+    {
+      "cursos": [
+        "Ingeniería de Software II",
+        "Base de Datos II",
+        "Redes de Computadoras",
+        "Ética y Deontología"
+      ],
+      "cantidad": 15
+    },
+    {
+      "cursos": [
+        "Sistemas Operativos",
+        "Investigación Operativa",
+        "Redes de Computadoras"
+      ],
+      "cantidad": 15
+    }
   ]
 }
