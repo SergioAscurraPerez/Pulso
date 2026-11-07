@@ -79,3 +79,10 @@ def test_plantilla_incluye_movimientos_dias_y_reduccion(caso):
     for m in res.movimientos:
         assert m.curso in texto and m.nombre in texto and f"{m.dias:+d} días" in texto
     assert "3 → 0" in texto
+
+
+def test_limita_tokens_de_salida(caso):
+    cohorte, res = caso
+    cliente = ClienteStub()
+    generar_propuesta(cohorte, res, cliente=cliente, modelo="m")
+    assert 0 < cliente.llamadas[0]["max_tokens"] <= 4000

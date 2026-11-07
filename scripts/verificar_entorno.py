@@ -75,7 +75,9 @@ def verificar_llm() -> bool:
         respuesta = cliente.chat.completions.create(
             model=modelo,
             messages=[{"role": "user", "content": "Responde solo con la palabra: OK"}],
-            max_tokens=10,
+            # Los modelos con razonamiento (p. ej. Gemini 3.x) gastan tokens pensando antes de
+            # responder: con 10 la respuesta llega vacía.
+            max_tokens=500,
         )
     except OpenAIError as error:
         print(f"[FALLA] Llamada al LLM ({modelo}): {error}")
