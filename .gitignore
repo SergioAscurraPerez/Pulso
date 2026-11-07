@@ -1,0 +1,21 @@
+# Planificación (no se sube al repo)
+PULSO_Product_Backlog.xlsx
+*.xlsx
+~$*.xlsx
+
+# Secretos
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Streamlit / IDE / SO
+.streamlit/secrets.toml
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
