@@ -5,17 +5,20 @@ Local: uvicorn src.app:app --reload
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
-from src.models import Cohorte, Evaluacion, cargar_cohorte
+from src.engine.collisions import MIN_EVALUACIONES, detectar_colisiones
+from src.engine.load_index import carga_semanal_cohorte, evaluaciones_por_semana, semana_de, semana_pico
+from src.models import SEMANAS_CICLO, Cohorte, Evaluacion, cargar_cohorte
 
 RAIZ = Path(__file__).resolve().parent.parent
 DIR_UI = Path(__file__).resolve().parent / "ui"
@@ -37,7 +40,6 @@ VISTAS: list[tuple[str, str]] = [
 ]
 # Ruta -> tarea del backlog que la implementa. Cada tarea quita su entrada al agregar la vista real.
 VISTAS_PENDIENTES: dict[str, str] = {
-    "/carga": "PUL-15",
     "/antes-despues": "PUL-16",
     "/simulador": "PUL-18",
 }
@@ -89,16 +91,76 @@ def renderizar(request: Request, plantilla: str, fuente: str, **contexto) -> HTM
     )
 
 
+def lunes_de_semana(cohorte: Cohorte, semana: int) -> date:
+    return cohorte.fecha_inicio + timedelta(weeks=semana - 1)
+
+
+def ordenar_por_fecha(cohorte: Cohorte, evaluaciones: list[Evaluacion]) -> list[Evaluacion]:
+    """Orden cronológico; si solo hay semana (antes de normalizar, PUL-06), se usa el lunes de esa semana."""
+    return sorted(evaluaciones, key=lambda e: (e.fecha or lunes_de_semana(cohorte, e.semana), e.curso, e.nombre))
+
+
 @app.get("/", response_class=HTMLResponse)
 def inicio(request: Request, fuente: str = FUENTE_POR_DEFECTO) -> HTMLResponse:
     cohorte = obtener_cohorte(fuente)
-
-    def fecha_efectiva(e: Evaluacion) -> date:
-        # Si solo hay semana (antes de normalizar, PUL-06), se usa el lunes de esa semana.
-        return e.fecha or cohorte.fecha_inicio + timedelta(weeks=e.semana - 1)
-
-    evaluaciones = sorted(cohorte.evaluaciones, key=lambda e: (fecha_efectiva(e), e.curso, e.nombre))
+    evaluaciones = ordenar_por_fecha(cohorte, cohorte.evaluaciones)
     return renderizar(request, "inicio.html", fuente, cohorte=cohorte, evaluaciones=evaluaciones)
+
+
+@dataclass(frozen=True)
+class SemanaCarga:
+    numero: int
+    lunes: date
+    carga: float
+    intensidad: float  # carga / carga pico, en [0, 1]: define el color de la celda
+    critica: bool  # contiene evaluaciones de una colisión (PUL-10)
+    evaluaciones: list[Evaluacion]
+
+    @property
+    def domingo(self) -> date:
+        return self.lunes + timedelta(days=6)
+
+
+@app.get("/carga", response_class=HTMLResponse)
+def carga(
+    request: Request,
+    fuente: str = FUENTE_POR_DEFECTO,
+    semana: int | None = Query(default=None, ge=1, le=SEMANAS_CICLO),
+) -> HTMLResponse:
+    """Heatmap de carga semanal (PUL-15): semanas con colisiones en rojo; `semana` abre su detalle."""
+    cohorte = obtener_cohorte(fuente)
+    carga_por_semana = carga_semanal_cohorte(cohorte)
+    numero_pico, pico = semana_pico(carga_por_semana)
+    colisiones = detectar_colisiones(cohorte.evaluaciones)
+    ids_en_colision = {e.id for colision in colisiones for e in colision.evaluaciones}
+    semanas_criticas = {
+        semana_de(e, cohorte.fecha_inicio, colision.fechas[e.id]) for colision in colisiones for e in colision.evaluaciones
+    }
+    por_semana = evaluaciones_por_semana(cohorte.evaluaciones, cohorte.fecha_inicio)
+    semanas = [
+        SemanaCarga(
+            numero=n,
+            lunes=lunes_de_semana(cohorte, n),
+            carga=carga_por_semana[n],
+            intensidad=carga_por_semana[n] / pico if pico else 0.0,
+            critica=n in semanas_criticas,
+            evaluaciones=ordenar_por_fecha(cohorte, por_semana[n]),
+        )
+        for n in range(1, SEMANAS_CICLO + 1)
+    ]
+    return renderizar(
+        request,
+        "carga.html",
+        fuente,
+        cohorte=cohorte,
+        semanas=semanas,
+        seleccionada=semanas[semana - 1] if semana else None,
+        semana_pico=numero_pico if pico else None,
+        pico=pico,
+        colisiones=colisiones,
+        ids_en_colision=ids_en_colision,
+        min_evaluaciones=MIN_EVALUACIONES,
+    )
 
 
 def _vista_pendiente(ruta: str, titulo: str, tarea: str) -> None:
