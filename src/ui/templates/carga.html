@@ -44,7 +44,7 @@
           </li>
         {% endfor %}
       </ul>
-      <p class="panel-pie"><a class="enlace" href="/antes-despues?fuente={{ fuente }}">Ver cómo se resuelven</a></p>
+      <p class="panel-pie">{# Fuera del hx-boost del bloque: es otra página, no un cambio de semana. #}<a class="enlace" href="/antes-despues?fuente={{ fuente }}" hx-boost="false">Ver cómo se resuelven</a></p>
     {% else %}
       <p>No hay colisiones en esta cohorte.</p>
     {% endif %}
