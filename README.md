@@ -103,8 +103,9 @@ Requiere Python 3.12 o superior.
 ```bash
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env               # completar LLM_API_KEY
+pip install -r requirements-dev.txt   # app + pytest (Vercel solo instala requirements.txt)
+cp .env.example .env               # completar LLM_API_KEY y LLM_MODEL (OpenRouter)
+python scripts/verificar_entorno.py  # dependencias + llamada de prueba al LLM
 uvicorn src.app:app --reload       # http://127.0.0.1:8000
 ```
 
