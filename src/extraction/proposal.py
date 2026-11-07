@@ -19,6 +19,10 @@ from src.extraction.llm import ClienteChat, config_llm, crear_cliente
 from src.models import Cohorte
 from src.optimizer.objective import ResultadoOptimizacion
 
+# Tope de tokens de salida (incluye razonamiento). Sin tope, OpenRouter reserva el máximo del
+# modelo y una key con poco saldo rechaza la llamada (402).
+MAX_TOKENS = 3000
+
 DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
 MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 
@@ -127,6 +131,8 @@ def generar_propuesta(
         respuesta = cliente.chat.completions.create(
             model=modelo,
             temperature=0.3,
+            max_tokens=MAX_TOKENS,
+            extra_body={"reasoning": {"effort": "low"}},
             messages=[
                 {"role": "system", "content": PROMPT_SISTEMA},
                 {"role": "user", "content": json.dumps(datos, ensure_ascii=False, indent=2)},
